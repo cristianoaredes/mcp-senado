@@ -83,9 +83,20 @@ async function main() {
     // Create tool registry
     const toolRegistry = createToolRegistry();
 
-    // Register reference data tools
+    // Register all tools
     const { referenceTools } = await import('../tools/reference-tools.js');
+    const { senatorTools } = await import('../tools/senator-tools.js');
+    const { proposalTools } = await import('../tools/proposal-tools.js');
+    const { votingTools } = await import('../tools/voting-tools.js');
+    const { committeeTools } = await import('../tools/committee-tools.js');
+    const { partyTools } = await import('../tools/party-tools.js');
+
     toolRegistry.registerMany(referenceTools);
+    toolRegistry.registerMany(senatorTools);
+    toolRegistry.registerMany(proposalTools);
+    toolRegistry.registerMany(votingTools);
+    toolRegistry.registerMany(committeeTools);
+    toolRegistry.registerMany(partyTools);
 
     logger.info('Tool registry initialized', {
       toolCount: toolRegistry.count(),
