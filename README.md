@@ -8,8 +8,8 @@ MCP (Model Context Protocol) server for the Brazilian Federal Senate (Senado Fed
 
 ## 🎯 Features
 
-- **50+ Tools** across 6 categories for comprehensive legislative data access
-- **Multi-Platform Support**: NPM package, Cloudflare Workers, and Smithery
+- **56 Tools** across 7 categories for comprehensive legislative data access
+- **Multi-Transport**: stdio (MCP standard) and HTTP/REST API
 - **Production-Ready**: Circuit breaker, rate limiting, caching, and monitoring
 - **Type-Safe**: Full TypeScript with strict mode
 - **Well-Documented**: Complete documentation in Portuguese and English
@@ -77,42 +77,133 @@ Add to your `config.json`:
 }
 ```
 
+## 🌐 HTTP Server Mode
+
+Run the server as a standalone HTTP API for web applications and services:
+
+### Starting the Server
+
+**Development Mode:**
+```bash
+npm run dev:http
+```
+
+**Production Mode:**
+```bash
+npm run build
+npm run start:http
+```
+
+**Using npx:**
+```bash
+npx @aredes.me/mcp-senado-http
+```
+
+### HTTP Endpoints
+
+Base URL: `http://localhost:3000`
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check and server status |
+| `/api/tools` | GET | List all available tools |
+| `/api/tools/:name` | GET | Get specific tool details |
+| `/api/tools/:name` | POST | Invoke a tool |
+| `/api/tools/category/:category` | GET | List tools by category |
+| `/api/categories` | GET | List all categories |
+
+### Example Requests
+
+**Health Check:**
+```bash
+curl http://localhost:3000/health
+```
+
+**List All Tools:**
+```bash
+curl http://localhost:3000/api/tools
+```
+
+**Get Tool Details:**
+```bash
+curl http://localhost:3000/api/tools/ufs_listar
+```
+
+**Invoke a Tool:**
+```bash
+curl -X POST http://localhost:3000/api/tools/senadores_listar \
+  -H "Content-Type: application/json" \
+  -d '{"uf": "SP"}'
+```
+
+**With Authentication:**
+```bash
+curl -X POST http://localhost:3000/api/tools/senadores_listar \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token-here" \
+  -d '{"uf": "SP"}'
+```
+
+### HTTP Configuration
+
+Set these environment variables in your `.env` file:
+
+```bash
+# HTTP Server
+HTTP_PORT=3000                    # Server port
+HTTP_HOST=0.0.0.0                 # Bind address
+HTTP_CORS_ORIGIN=*                # CORS allowed origin
+HTTP_AUTH_ENABLED=false           # Enable bearer token auth
+HTTP_AUTH_TOKEN=                  # Authentication token
+HTTP_REQUEST_TIMEOUT=30000        # Request timeout (ms)
+```
+
 ## 🛠️ Available Tools
 
-### Senators (15+ tools)
-- List senators with filters (name, party, state, legislature)
-- Get detailed senator information
-- Access voting history and authored proposals
-- View committee memberships and leadership positions
-
-### Legislative Proposals (10+ tools)
-- Search proposals with advanced filters
-- Get detailed proposal information
-- Access voting history and processing status
-- View proposal texts and amendments
-
-### Voting (5+ tools)
-- List voting sessions with filters
-- Get detailed voting results
-- Access individual senator votes
-- View party voting orientations
-
-### Committees (5+ tools)
-- List all committees
-- Get committee details and members
-- Access meeting schedules
-- View proposals under review
-
-### Parties (5+ tools)
-- List all political parties
-- Get party details and senators
-- Access parliamentary blocs
-- View party leadership
-
-### Reference Data (10+ tools)
+### Reference Data (10 tools)
 - List legislatures, proposal types, and statuses
 - Access Brazilian states and committee types
-- Get classification and reference data
+- List author types, session types, and voting types
+- Get document types and subject classifications
+
+### Senators (13 tools)
+- List senators with filters (name, party, state, legislature)
+- Get detailed senator information and biography
+- Access voting history and authored proposals
+- View committee memberships and leadership positions
+- Search speeches and legislative activities
+
+### Legislative Proposals (12 tools)
+- Search proposals with advanced filters
+- Get detailed proposal information and full text
+- Access voting history and processing status
+- View proposal amendments and related documents
+- List authors and co-authors
+
+### Voting (5 tools)
+- List voting sessions with filters
+- Get detailed voting results
+- Access individual senator votes by voting session
+- View voting statistics and party orientations
+
+### Committees (5 tools)
+- List all committees (permanent and temporary)
+- Get committee details, members, and composition
+- Access meeting schedules and agendas
+- View proposals under committee review
+
+### Parties (5 tools)
+- List all political parties and parliamentary blocs
+- Get party details and current senators
+- Access party leadership information
+- View bloc compositions and coalitions
+
+### Sessions & Plenary (6 tools)
+- List plenary sessions with filters
+- Get session details and schedules
+- Access session votings and results
+- View session speeches and transcripts
+- Get plenary results by month
 
 ## 📖 Usage Examples
 
