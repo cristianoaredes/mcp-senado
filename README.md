@@ -158,6 +158,94 @@ HTTP_AUTH_TOKEN=                  # Authentication token
 HTTP_REQUEST_TIMEOUT=30000        # Request timeout (ms)
 ```
 
+## 🐳 Docker Deployment
+
+Run the server in a Docker container for isolated, portable deployment:
+
+### Quick Start with Docker Compose
+
+**1. Clone and configure:**
+```bash
+git clone https://github.com/cristianoaredes/mcp-senado.git
+cd mcp-senado
+cp .env.example .env  # Edit .env as needed
+```
+
+**2. Run with Docker Compose:**
+```bash
+docker-compose up -d
+```
+
+**3. Check status:**
+```bash
+docker-compose ps
+docker-compose logs -f
+curl http://localhost:3000/health
+```
+
+**4. Stop the service:**
+```bash
+docker-compose down
+```
+
+### Manual Docker Build
+
+**Build the image:**
+```bash
+docker build -t mcp-senado:latest .
+```
+
+**Run HTTP server:**
+```bash
+docker run -d \
+  --name mcp-senado \
+  -p 3000:3000 \
+  -e HTTP_PORT=3000 \
+  -e MCP_LOG_LEVEL=info \
+  mcp-senado:latest
+```
+
+**Run with custom environment:**
+```bash
+docker run -d \
+  --name mcp-senado \
+  -p 8080:8080 \
+  --env-file .env \
+  -e HTTP_PORT=8080 \
+  -e HTTP_AUTH_ENABLED=true \
+  -e HTTP_AUTH_TOKEN=your-secret-token \
+  mcp-senado:latest
+```
+
+**View logs:**
+```bash
+docker logs -f mcp-senado
+```
+
+**Stop and remove:**
+```bash
+docker stop mcp-senado
+docker rm mcp-senado
+```
+
+### Docker Image Details
+
+- **Base image:** node:18-alpine
+- **Image size:** ~150MB (multi-stage build)
+- **User:** Non-root user (nodejs:1001)
+- **Health check:** Built-in HTTP health check on /health
+- **Security:** Runs as non-root, uses dumb-init for signal handling
+
+### Environment Variables
+
+All configuration variables from `.env.example` can be passed to Docker:
+- API Configuration: `SENADO_API_BASE_URL`
+- HTTP Server: `HTTP_PORT`, `HTTP_HOST`, `HTTP_CORS_ORIGIN`, `HTTP_AUTH_*`
+- Cache: `MCP_CACHE_ENABLED`, `MCP_CACHE_TTL`, `MCP_CACHE_MAX_SIZE`
+- Rate Limiting: `MCP_RATE_LIMIT_*`
+- Circuit Breaker: `MCP_CIRCUIT_BREAKER_*`
+- Logging: `MCP_LOG_LEVEL`
+
 ## 🛠️ Available Tools
 
 ### Reference Data (10 tools)

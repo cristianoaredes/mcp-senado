@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  mcp-senado:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-senado:latest
+    container_name: mcp-senado
+    restart: unless-stopped
+
+    # Port mapping
+    ports:
+      - "${HTTP_PORT:-3000}:3000"
+
+    # Environment variables
+    environment:
+      # API Configuration
+      SENADO_API_BASE_URL: ${SENADO_API_BASE_URL:-https://legis.senado.leg.br/dadosabertos/}
+
+      # HTTP Server Configuration
+      HTTP_PORT: ${HTTP_PORT:-3000}
+      HTTP_HOST: ${HTTP_HOST:-0.0.0.0}
+      HTTP_CORS_ORIGIN: ${HTTP_CORS_ORIGIN:-*}
+      HTTP_AUTH_ENABLED: ${HTTP_AUTH_ENABLED:-false}
+      HTTP_AUTH_TOKEN: ${HTTP_AUTH_TOKEN:-}
+      HTTP_REQUEST_TIMEOUT: ${HTTP_REQUEST_TIMEOUT:-30000}
+
+      # Cache Configuration
+      MCP_CACHE_ENABLED: ${MCP_CACHE_ENABLED:-true}
+      MCP_CACHE_TTL: ${MCP_CACHE_TTL:-300}
+      MCP_CACHE_MAX_SIZE: ${MCP_CACHE_MAX_SIZE:-1000}
+
+      # Rate Limiting
+      MCP_RATE_LIMIT_ENABLED: ${MCP_RATE_LIMIT_ENABLED:-true}
+      MCP_RATE_LIMIT_MAX_REQUESTS: ${MCP_RATE_LIMIT_MAX_REQUESTS:-30}
+      MCP_RATE_LIMIT_WINDOW_MS: ${MCP_RATE_LIMIT_WINDOW_MS:-60000}
+
+      # Circuit Breaker
+      MCP_CIRCUIT_BREAKER_ENABLED: ${MCP_CIRCUIT_BREAKER_ENABLED:-true}
+      MCP_CIRCUIT_BREAKER_THRESHOLD: ${MCP_CIRCUIT_BREAKER_THRESHOLD:-5}
+      MCP_CIRCUIT_BREAKER_TIMEOUT: ${MCP_CIRCUIT_BREAKER_TIMEOUT:-60000}
+
+      # HTTP Client
+      MCP_HTTP_TIMEOUT: ${MCP_HTTP_TIMEOUT:-30000}
+      MCP_HTTP_RETRY_ATTEMPTS: ${MCP_HTTP_RETRY_ATTEMPTS:-3}
+      MCP_HTTP_RETRY_DELAY: ${MCP_HTTP_RETRY_DELAY:-1000}
+
+      # Logging
+      MCP_LOG_LEVEL: ${MCP_LOG_LEVEL:-info}
+      NODE_ENV: production
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+    # Networks
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
