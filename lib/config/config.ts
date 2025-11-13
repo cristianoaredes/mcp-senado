@@ -16,6 +16,9 @@ import { LogLevel } from '../types/index.js';
 // Load environment variables from .env file
 loadEnv();
 
+// Helper to safely get env variable
+const getEnv = (key: string): string | undefined => process.env[key];
+
 /**
  * Load configuration from environment and files
  */
@@ -27,138 +30,138 @@ export function loadConfig(): MCPServerConfig {
   const config: MCPServerConfig = {
     // Server
     name:
-      process.env.MCP_SERVER_NAME ||
+      getEnv('MCP_SERVER_NAME') ||
       mcprcConfig?.name ||
       'mcp-senado',
     version:
-      process.env.MCP_SERVER_VERSION ||
+      getEnv('MCP_SERVER_VERSION') ||
       mcprcConfig?.version ||
       '1.0.0',
     transport:
-      (process.env.MCP_TRANSPORT as 'stdio' | 'http') ||
+      (getEnv('MCP_TRANSPORT') as 'stdio' | 'http') ||
       (mcprcConfig?.transport as 'stdio' | 'http') ||
       'stdio',
 
     // HTTP Server
     httpPort:
-      parseInt(process.env.MCP_HTTP_PORT || '', 10) ||
+      parseInt(getEnv('MCP_HTTP_PORT') || '', 10) ||
       mcprcConfig?.httpPort ||
       3000,
     httpHost:
-      process.env.MCP_HTTP_HOST ||
+      getEnv('MCP_HTTP_HOST') ||
       mcprcConfig?.httpHost ||
       '0.0.0.0',
 
     // Senado API
     apiBaseUrl:
-      process.env.SENADO_API_BASE_URL ||
+      getEnv('SENADO_API_BASE_URL') ||
       mcprcConfig?.apiBaseUrl ||
       'https://legis.senado.leg.br/dadosabertos',
     apiTimeout:
-      parseInt(process.env.SENADO_API_TIMEOUT || '', 10) ||
+      parseInt(getEnv('SENADO_API_TIMEOUT') || '', 10) ||
       mcprcConfig?.apiTimeout ||
       30000,
     apiMaxRetries:
-      parseInt(process.env.SENADO_API_MAX_RETRIES || '', 10) ||
+      parseInt(getEnv('SENADO_API_MAX_RETRIES') || '', 10) ||
       mcprcConfig?.apiMaxRetries ||
       3,
     apiRetryDelay:
-      parseInt(process.env.SENADO_API_RETRY_DELAY || '', 10) ||
+      parseInt(getEnv('SENADO_API_RETRY_DELAY') || '', 10) ||
       mcprcConfig?.apiRetryDelay ||
       1000,
 
     // Cache
     cacheEnabled:
-      parseBool(process.env.MCP_CACHE_ENABLED) ??
+      parseBool(getEnv('MCP_CACHE_ENABLED')) ??
       mcprcConfig?.cacheEnabled ??
       true,
     cacheTTL:
-      parseInt(process.env.MCP_CACHE_TTL || '', 10) ||
+      parseInt(getEnv('MCP_CACHE_TTL') || '', 10) ||
       mcprcConfig?.cacheTTL ||
       300000, // 5 minutes
     cacheMaxSize:
-      parseInt(process.env.MCP_CACHE_MAX_SIZE || '', 10) ||
+      parseInt(getEnv('MCP_CACHE_MAX_SIZE') || '', 10) ||
       mcprcConfig?.cacheMaxSize ||
       1000,
     cacheCleanupInterval:
-      parseInt(process.env.MCP_CACHE_CLEANUP_INTERVAL || '', 10) ||
+      parseInt(getEnv('MCP_CACHE_CLEANUP_INTERVAL') || '', 10) ||
       mcprcConfig?.cacheCleanupInterval ||
       60000, // 1 minute
 
     // Rate Limiting
     rateLimitEnabled:
-      parseBool(process.env.MCP_RATE_LIMIT_ENABLED) ??
+      parseBool(getEnv('MCP_RATE_LIMIT_ENABLED')) ??
       mcprcConfig?.rateLimitEnabled ??
       true,
     rateLimitTokens:
-      parseInt(process.env.MCP_RATE_LIMIT_TOKENS || '', 10) ||
+      parseInt(getEnv('MCP_RATE_LIMIT_TOKENS') || '', 10) ||
       mcprcConfig?.rateLimitTokens ||
       30,
     rateLimitInterval:
-      parseInt(process.env.MCP_RATE_LIMIT_INTERVAL || '', 10) ||
+      parseInt(getEnv('MCP_RATE_LIMIT_INTERVAL') || '', 10) ||
       mcprcConfig?.rateLimitInterval ||
       60000, // 1 minute
     rateLimitRefillRate:
-      parseInt(process.env.MCP_RATE_LIMIT_REFILL_RATE || '', 10) ||
+      parseInt(getEnv('MCP_RATE_LIMIT_REFILL_RATE') || '', 10) ||
       mcprcConfig?.rateLimitRefillRate ||
       2000, // 2 seconds
 
     // Circuit Breaker
     circuitBreakerEnabled:
-      parseBool(process.env.MCP_CIRCUIT_BREAKER_ENABLED) ??
+      parseBool(getEnv('MCP_CIRCUIT_BREAKER_ENABLED')) ??
       mcprcConfig?.circuitBreakerEnabled ??
       true,
     circuitBreakerFailureThreshold:
       parseInt(
-        process.env.MCP_CIRCUIT_BREAKER_FAILURE_THRESHOLD || '',
+        getEnv('MCP_CIRCUIT_BREAKER_FAILURE_THRESHOLD') || '',
         10
       ) ||
       mcprcConfig?.circuitBreakerFailureThreshold ||
       5,
     circuitBreakerSuccessThreshold:
       parseInt(
-        process.env.MCP_CIRCUIT_BREAKER_SUCCESS_THRESHOLD || '',
+        getEnv('MCP_CIRCUIT_BREAKER_SUCCESS_THRESHOLD') || '',
         10
       ) ||
       mcprcConfig?.circuitBreakerSuccessThreshold ||
       2,
     circuitBreakerTimeout:
-      parseInt(process.env.MCP_CIRCUIT_BREAKER_TIMEOUT || '', 10) ||
+      parseInt(getEnv('MCP_CIRCUIT_BREAKER_TIMEOUT') || '', 10) ||
       mcprcConfig?.circuitBreakerTimeout ||
       60000, // 1 minute
 
     // Logging
     logLevel:
-      parseLogLevel(process.env.MCP_LOG_LEVEL) ||
+      parseLogLevel(getEnv('MCP_LOG_LEVEL')) ||
       mcprcConfig?.logLevel ||
       LogLevel.INFO,
     logFormat:
-      (process.env.MCP_LOG_FORMAT as 'json' | 'text') ||
+      (getEnv('MCP_LOG_FORMAT') as 'json' | 'text') ||
       (mcprcConfig?.logFormat as 'json' | 'text') ||
       'json',
     logMaskPII:
-      parseBool(process.env.MCP_LOG_MASK_PII) ??
+      parseBool(getEnv('MCP_LOG_MASK_PII')) ??
       mcprcConfig?.logMaskPII ??
       true,
 
     // Security
-    apiKey: process.env.MCP_API_KEY || mcprcConfig?.apiKey,
+    apiKey: getEnv('MCP_API_KEY') || mcprcConfig?.apiKey,
     corsEnabled:
-      parseBool(process.env.MCP_CORS_ENABLED) ??
+      parseBool(getEnv('MCP_CORS_ENABLED')) ??
       mcprcConfig?.corsEnabled ??
       true,
     corsOrigins:
-      process.env.MCP_CORS_ORIGINS ||
+      getEnv('MCP_CORS_ORIGINS') ||
       mcprcConfig?.corsOrigins ||
       '*',
 
     // Environment
     nodeEnv:
-      (process.env.NODE_ENV as 'development' | 'production' | 'test') ||
+      (getEnv('NODE_ENV') as 'development' | 'production' | 'test') ||
       (mcprcConfig?.nodeEnv as 'development' | 'production' | 'test') ||
       'production',
     debug:
-      parseBool(process.env.DEBUG) ?? mcprcConfig?.debug ?? false,
+      parseBool(getEnv('DEBUG')) ?? mcprcConfig?.debug ?? false,
   };
 
   // Validate configuration
