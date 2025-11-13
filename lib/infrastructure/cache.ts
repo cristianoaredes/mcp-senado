@@ -211,7 +211,7 @@ export class LRUCache implements CacheInterface {
       return;
     }
 
-    const lruKey = this.accessOrder[0];
+    const lruKey = this.accessOrder[0]!; // Safe: length check ensures this exists
     this.cache.delete(lruKey);
     this.removeFromAccessOrder(lruKey);
 

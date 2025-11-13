@@ -125,7 +125,7 @@ export class StructuredLogger implements Logger {
       message,
       context: context
         ? this.config.maskPII
-          ? this.maskSensitiveData(context)
+          ? (this.maskSensitiveData(context) as Record<string, unknown>)
           : context
         : undefined,
     };

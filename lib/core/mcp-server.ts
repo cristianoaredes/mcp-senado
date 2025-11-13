@@ -37,7 +37,6 @@ export class SenadoMCPServer {
   private readonly config: MCPServerConfig;
   private readonly logger: Logger;
   private readonly toolRegistry: ToolRegistry;
-  private readonly httpClient: HttpClient;
   private readonly cache: CacheInterface;
   private readonly rateLimiter: RateLimiter;
   private readonly toolContext: ToolContext;
@@ -54,7 +53,6 @@ export class SenadoMCPServer {
     this.config = config;
     this.logger = logger;
     this.toolRegistry = toolRegistry;
-    this.httpClient = httpClient;
     this.cache = cache;
     this.rateLimiter = rateLimiter;
 
@@ -125,7 +123,7 @@ export class SenadoMCPServer {
     // Call tool handler
     this.server.setRequestHandler(
       CallToolRequestSchema,
-      async (request) => {
+      async (request, _extra) => {
         const { name, arguments: args } = request.params;
         const startTime = Date.now();
 
@@ -159,7 +157,7 @@ export class SenadoMCPServer {
               const duration = Date.now() - startTime;
               this.logger.logToolInvocation(name, args, duration);
 
-              return cached;
+              return cached as any;
             }
 
             this.stats.cacheMisses++;
@@ -181,7 +179,8 @@ export class SenadoMCPServer {
           const duration = Date.now() - startTime;
           this.logger.logToolInvocation(name, args, duration);
 
-          return result;
+          // Return as any to satisfy MCP SDK types (our structure is correct)
+          return result as any;
         } catch (error) {
           this.stats.errors++;
 
@@ -197,7 +196,7 @@ export class SenadoMCPServer {
           );
 
           // Transform error to tool result
-          return errorToToolResult(error);
+          return errorToToolResult(error) as any;
         }
       }
     );
@@ -241,7 +240,7 @@ export class SenadoMCPServer {
 
     return {
       status: 'healthy',
-      uptime: stats.uptime,
+      uptime: stats.uptime || 0,
       toolCount: this.toolRegistry.count(),
       stats: {
         toolInvocations: stats.toolInvocations,

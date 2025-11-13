@@ -392,8 +392,9 @@ export function zodToJsonSchema(schema: z.ZodSchema): Record<string, unknown> {
       };
 
       // Add description if available
-      if (value.description) {
-        prop.description = value.description;
+      const zodValue = value as { description?: string };
+      if (zodValue.description) {
+        prop['description'] = zodValue.description;
       }
 
       // Check if optional

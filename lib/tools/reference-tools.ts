@@ -9,7 +9,6 @@
  * - Brazilian states
  */
 
-import { z } from 'zod';
 import type { ToolDefinition, ToolContext, ToolResult } from '../types/index.js';
 import {
   ListLegislaturesSchema,

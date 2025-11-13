@@ -59,7 +59,7 @@ export class SenadoHttpClient implements HttpClient {
 
     try {
       const response = await this.executeWithRetry(async () => {
-        return await this.performRequest(url, {
+        return await this.performRequest<T>(url, {
           method: 'GET',
           headers: this.getHeaders(),
         });
@@ -97,7 +97,7 @@ export class SenadoHttpClient implements HttpClient {
 
     try {
       const response = await this.executeWithRetry(async () => {
-        return await this.performRequest(url, {
+        return await this.performRequest<T>(url, {
           method: 'POST',
           headers: this.getHeaders(),
           body: JSON.stringify(data),
