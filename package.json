@@ -1,0 +1,76 @@
+{
+  "name": "@aredes.me/mcp-senado",
+  "version": "0.1.0",
+  "description": "MCP server for Brazilian Federal Senate (Senado Federal) Open Data API - Access legislative data through AI assistants",
+  "type": "module",
+  "main": "build/lib/index.js",
+  "types": "build/lib/index.d.ts",
+  "bin": {
+    "mcp-senado": "build/lib/bin/mcp-senado.js"
+  },
+  "files": [
+    "build/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch lib/bin/mcp-senado.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "tsc --noEmit",
+    "clean": "rm -rf build",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "senado",
+    "senado-federal",
+    "brazilian-senate",
+    "legislative-data",
+    "open-data",
+    "dados-abertos",
+    "ai-assistant",
+    "claude",
+    "cursor",
+    "windsurf",
+    "continue",
+    "brazil",
+    "brasil",
+    "congress",
+    "congresso"
+  ],
+  "author": {
+    "name": "Cristiano Aredes",
+    "email": "cristiano@aredes.me",
+    "url": "https://github.com/cristianoaredes"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cristianoaredes/mcp-senado.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cristianoaredes/mcp-senado/issues"
+  },
+  "homepage": "https://github.com/cristianoaredes/mcp-senado#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "dotenv": "^16.4.5",
+    "express": "^5.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.0",
+    "wrangler": "^4.0.0"
+  }
+}
