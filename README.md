@@ -246,6 +246,153 @@ All configuration variables from `.env.example` can be passed to Docker:
 - Circuit Breaker: `MCP_CIRCUIT_BREAKER_*`
 - Logging: `MCP_LOG_LEVEL`
 
+## ⚡ Cloudflare Workers Deployment
+
+Deploy the server to Cloudflare Workers for global edge deployment with zero cold starts:
+
+### Prerequisites
+
+1. **Install Wrangler CLI:**
+```bash
+npm install -g wrangler
+```
+
+2. **Authenticate with Cloudflare:**
+```bash
+wrangler login
+```
+
+### Quick Start
+
+**1. Build the project:**
+```bash
+npm run build
+```
+
+**2. Deploy to development:**
+```bash
+npm run deploy:workers
+```
+
+**3. Deploy to staging:**
+```bash
+npm run deploy:workers:staging
+```
+
+**4. Deploy to production:**
+```bash
+npm run deploy:workers:production
+```
+
+### Local Development
+
+Test the Workers adapter locally with Wrangler:
+
+```bash
+npm run dev:workers
+```
+
+This starts a local server at `http://localhost:8787` with hot reload.
+
+### Configuration
+
+Configure your Workers deployment by editing `wrangler.toml`:
+
+```toml
+name = "mcp-senado"
+main = "build/workers/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+SENADO_API_BASE_URL = "https://legis.senado.leg.br/dadosabertos/"
+WORKERS_CORS_ORIGIN = "*"
+MCP_CACHE_ENABLED = "true"
+# ... more configuration
+```
+
+### Environment-Specific Configuration
+
+The project supports three environments:
+- **Development** (default): For local testing with `wrangler dev`
+- **Staging**: Pre-production environment at `mcp-senado-staging.workers.dev`
+- **Production**: Production environment at `mcp-senado-production.workers.dev`
+
+### Environment Variables
+
+All configuration can be set via environment variables in `wrangler.toml`:
+
+- **API Configuration:**
+  - `SENADO_API_BASE_URL`: Brazilian Senate API base URL
+
+- **Workers Configuration:**
+  - `WORKERS_CORS_ORIGIN`: CORS allowed origins (default: "*")
+  - `WORKERS_AUTH_ENABLED`: Enable API authentication (default: "false")
+  - `WORKERS_AUTH_TOKEN`: API authentication token
+
+- **Cache Configuration:**
+  - `MCP_CACHE_ENABLED`: Enable in-memory cache (default: "true")
+  - `MCP_CACHE_TTL`: Cache TTL in seconds (default: "300")
+  - `MCP_CACHE_MAX_SIZE`: Maximum cache entries (default: "1000")
+
+- **Rate Limiting:**
+  - `MCP_RATE_LIMIT_ENABLED`: Enable rate limiting (default: "true")
+  - `MCP_RATE_LIMIT_MAX_REQUESTS`: Max requests per window (default: "30")
+  - `MCP_RATE_LIMIT_WINDOW_MS`: Time window in ms (default: "60000")
+
+- **Circuit Breaker:**
+  - `MCP_CIRCUIT_BREAKER_ENABLED`: Enable circuit breaker (default: "true")
+  - `MCP_CIRCUIT_BREAKER_THRESHOLD`: Failure threshold (default: "5")
+  - `MCP_CIRCUIT_BREAKER_TIMEOUT`: Timeout in ms (default: "60000")
+
+- **HTTP Client:**
+  - `MCP_HTTP_TIMEOUT`: Request timeout in ms (default: "30000")
+  - `MCP_HTTP_RETRY_ATTEMPTS`: Max retry attempts (default: "3")
+  - `MCP_HTTP_RETRY_DELAY`: Retry delay in ms (default: "1000")
+
+- **Logging:**
+  - `MCP_LOG_LEVEL`: Log level (default: "info")
+  - `MCP_LOG_MASK_PII`: Mask personally identifiable information (default: "false")
+
+### API Endpoints
+
+Once deployed, your Workers instance exposes the following REST endpoints:
+
+- `GET /health` - Health check endpoint
+- `GET /info` - Server information (version, tool count, etc.)
+- `GET /api/tools` - List all available tools
+- `GET /api/tools/:name` - Get specific tool details
+- `POST /api/tools/:name` - Invoke a tool with parameters
+- `GET /api/categories` - List all tool categories
+- `GET /api/tools/category/:category` - Get tools by category
+
+### Example Usage
+
+**Invoke a tool via REST API:**
+```bash
+curl -X POST https://your-worker.workers.dev/api/tools/ufs_listar \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+**List all tools:**
+```bash
+curl https://your-worker.workers.dev/api/tools
+```
+
+**Get tool by category:**
+```bash
+curl https://your-worker.workers.dev/api/tools/category/senator
+```
+
+### Benefits of Workers Deployment
+
+- **Global Edge Network**: Deployed to 300+ Cloudflare data centers worldwide
+- **Zero Cold Starts**: Workers start instantly with no initialization delay
+- **Automatic Scaling**: Handles traffic spikes automatically
+- **Low Latency**: Responses from the nearest data center to users
+- **Cost-Effective**: Free tier includes 100,000 requests/day
+- **Built-in DDoS Protection**: Cloudflare's security by default
+
 ## 🛠️ Available Tools
 
 ### Reference Data (10 tools)
