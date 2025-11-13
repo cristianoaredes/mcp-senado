@@ -1,8 +1,11 @@
 # MCP Senado Federal
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml/badge.svg)](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![Tests](https://img.shields.io/badge/Tests-211%20passing-brightgreen.svg)](https://github.com/cristianoaredes/mcp-senado)
+[![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow.svg)](https://github.com/cristianoaredes/mcp-senado)
 
 MCP (Model Context Protocol) server for the Brazilian Federal Senate (Senado Federal) Open Data API. Enable AI assistants like Claude, Cursor, Windsurf, and Continue.dev to access comprehensive legislative data from the Brazilian Senate.
 
