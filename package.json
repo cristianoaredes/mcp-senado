@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "description": "MCP server for Brazilian Federal Senate (Senado Federal) Open Data API - Access legislative data through AI assistants",
   "type": "module",
-  "main": "build/lib/index.js",
-  "types": "build/lib/index.d.ts",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
   "bin": {
-    "mcp-senado": "build/lib/bin/mcp-senado.js"
+    "mcp-senado": "build/bin/mcp-senado.js"
   },
   "files": [
     "build/",
