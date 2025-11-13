@@ -1,0 +1,61 @@
+# Source files
+lib/
+*.ts
+!*.d.ts
+tsconfig.json
+
+# Tests
+__tests__/
+*.test.ts
+*.spec.ts
+vitest.config.ts
+.vitest/
+
+# Development files
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+*.log
+*.swp
+*.swo
+*~
+
+# Documentation (kept: README.md, LICENSE)
+docs/
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+CHANGELOG.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+codecov.yml
+
+# Build artifacts (not needed - TypeScript build is in build/)
+node_modules/
+coverage/
+.nyc_output/
+dist/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Cloudflare Workers (for edge deployment, not needed in npm package)
+wrangler.toml
+
+# NPM
+.npmrc
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Misc
+.DS_Store
+Thumbs.db
+*.map
+!build/**/*.map
