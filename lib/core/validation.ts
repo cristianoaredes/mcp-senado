@@ -95,6 +95,71 @@ export const SenatorCommitteesSchema = z.object({
   legislatura: LegislatureSchema.optional(),
 });
 
+/**
+ * Senator leaves/absences schema
+ */
+export const SenatorLeavesSchema = z.object({
+  codigo: CodeSchema.describe('Código do senador'),
+  legislatura: LegislatureSchema.optional(),
+});
+
+/**
+ * Senator mandates schema
+ */
+export const SenatorMandatesSchema = z.object({
+  codigo: CodeSchema.describe('Código do senador'),
+});
+
+/**
+ * Senator leadership positions schema
+ */
+export const SenatorLeadershipSchema = z.object({
+  codigo: CodeSchema.describe('Código do senador'),
+  legislatura: LegislatureSchema.optional(),
+});
+
+/**
+ * Senator positions/roles schema
+ */
+export const SenatorPositionsSchema = z.object({
+  codigo: CodeSchema.describe('Código do senador'),
+  legislatura: LegislatureSchema.optional(),
+});
+
+/**
+ * Senator remarks/interruptions schema
+ */
+export const SenatorRemarksSchema = z.object({
+  codigo: CodeSchema.describe('Código do senador'),
+  ...DateRangeSchema.shape,
+  ...PaginationSchema.shape,
+});
+
+/**
+ * Senator speeches schema
+ */
+export const SenatorSpeechesSchema = z.object({
+  codigo: CodeSchema.describe('Código do senador'),
+  ...DateRangeSchema.shape,
+  ...PaginationSchema.shape,
+});
+
+/**
+ * Senator rapporteurships schema
+ */
+export const SenatorRapporteurshipsSchema = z.object({
+  codigo: CodeSchema.describe('Código do senador'),
+  legislatura: LegislatureSchema.optional(),
+  ...PaginationSchema.shape,
+});
+
+/**
+ * Senator party affiliation history schema
+ */
+export const SenatorAffiliationsSchema = z.object({
+  codigo: CodeSchema.describe('Código do senador'),
+});
+
 // ============================================================================
 // Proposal Tool Schemas
 // ============================================================================
@@ -144,6 +209,62 @@ export const ProposalTextsSchema = z.object({
   codigo: CodeSchema.describe('Código da matéria'),
 });
 
+/**
+ * Proposal authors schema
+ */
+export const ProposalAuthorsSchema = z.object({
+  codigo: CodeSchema.describe('Código da matéria'),
+});
+
+/**
+ * Related proposals schema
+ */
+export const RelatedProposalsSchema = z.object({
+  codigo: CodeSchema.describe('Código da matéria'),
+});
+
+/**
+ * Proposal rapporteurships schema
+ */
+export const ProposalRapporteurshipsSchema = z.object({
+  codigo: CodeSchema.describe('Código da matéria'),
+});
+
+/**
+ * List proposals in process schema
+ */
+export const ListProposalsInProcessSchema = z.object({
+  data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('Data de referência (YYYY-MM-DD)'),
+  hora: z.string().regex(/^\d{2}\d{2}\d{2}$/).optional().describe('Hora de referência (HHMMSS)'),
+  ...PaginationSchema.shape,
+});
+
+/**
+ * List updated proposals schema
+ */
+export const ListUpdatedProposalsSchema = z.object({
+  data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe('Data de referência (YYYY-MM-DD)'),
+  hora: z.string().regex(/^\d{2}\d{2}\d{2}$/).optional().describe('Hora de referência (HHMMSS)'),
+  ...PaginationSchema.shape,
+});
+
+/**
+ * Proposals by year schema
+ */
+export const ProposalsByYearSchema = z.object({
+  ano: z.number().int().min(1900).max(2100).describe('Ano das matérias'),
+  sigla: z.string().max(20).optional().describe('Sigla do tipo de matéria'),
+  ...PaginationSchema.shape,
+});
+
+/**
+ * Proposal amendments schema
+ */
+export const ProposalAmendmentsSchema = z.object({
+  codigo: CodeSchema.describe('Código da matéria'),
+  ...PaginationSchema.shape,
+});
+
 // ============================================================================
 // Voting Tool Schemas
 // ============================================================================
@@ -174,6 +295,13 @@ export const VotingVotesSchema = z.object({
  * Party orientations schema
  */
 export const VotingOrientationsSchema = z.object({
+  codigo: CodeSchema.describe('Código da votação'),
+});
+
+/**
+ * Voting statistics schema
+ */
+export const VotingStatisticsSchema = z.object({
   codigo: CodeSchema.describe('Código da votação'),
 });
 
@@ -300,6 +428,91 @@ export const ListCommitteeTypesSchema = z.object({
  */
 export const ListStatesSchema = z.object({
   ...PaginationSchema.shape,
+});
+
+/**
+ * List author types schema
+ */
+export const ListAuthorTypesSchema = z.object({
+  ...PaginationSchema.shape,
+});
+
+/**
+ * List session types schema
+ */
+export const ListSessionTypesSchema = z.object({
+  ...PaginationSchema.shape,
+});
+
+/**
+ * List voting types schema
+ */
+export const ListVotingTypesSchema = z.object({
+  ...PaginationSchema.shape,
+});
+
+/**
+ * List document types schema
+ */
+export const ListDocumentTypesSchema = z.object({
+  ...PaginationSchema.shape,
+});
+
+/**
+ * List subject areas schema
+ */
+export const ListSubjectsSchema = z.object({
+  ...PaginationSchema.shape,
+});
+
+// ============================================================================
+// Session/Plenary Tool Schemas
+// ============================================================================
+
+/**
+ * List plenary sessions schema
+ */
+export const ListSessionsSchema = z.object({
+  ...DateRangeSchema.shape,
+  tipo: z.string().max(50).optional().describe('Tipo de sessão'),
+  ...PaginationSchema.shape,
+});
+
+/**
+ * Session details schema
+ */
+export const SessionDetailsSchema = z.object({
+  codigo: CodeSchema.describe('Código da sessão'),
+});
+
+/**
+ * Session votings schema
+ */
+export const SessionVotingsSchema = z.object({
+  codigo: CodeSchema.describe('Código da sessão'),
+  ...PaginationSchema.shape,
+});
+
+/**
+ * Session speeches schema
+ */
+export const SessionSpeechesSchema = z.object({
+  codigo: CodeSchema.describe('Código da sessão'),
+  ...PaginationSchema.shape,
+});
+
+/**
+ * Speech details schema
+ */
+export const SpeechDetailsSchema = z.object({
+  codigo: CodeSchema.describe('Código do discurso'),
+});
+
+/**
+ * Plenary results by month schema
+ */
+export const PlenaryResultsByMonthSchema = z.object({
+  data: z.string().regex(/^\d{8}$/).describe('Data no formato YYYYMMDD'),
 });
 
 // ============================================================================

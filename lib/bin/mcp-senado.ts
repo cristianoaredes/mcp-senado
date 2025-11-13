@@ -90,6 +90,7 @@ async function main() {
     const { votingTools } = await import('../tools/voting-tools.js');
     const { committeeTools } = await import('../tools/committee-tools.js');
     const { partyTools } = await import('../tools/party-tools.js');
+    const { sessionTools } = await import('../tools/session-tools.js');
 
     toolRegistry.registerMany(referenceTools);
     toolRegistry.registerMany(senatorTools);
@@ -97,6 +98,7 @@ async function main() {
     toolRegistry.registerMany(votingTools);
     toolRegistry.registerMany(committeeTools);
     toolRegistry.registerMany(partyTools);
+    toolRegistry.registerMany(sessionTools);
 
     logger.info('Tool registry initialized', {
       toolCount: toolRegistry.count(),

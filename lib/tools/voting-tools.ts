@@ -14,6 +14,7 @@ import {
   VotingDetailsSchema,
   VotingVotesSchema,
   VotingOrientationsSchema,
+  VotingStatisticsSchema,
   validateToolInput,
   zodToJsonSchema,
 } from '../core/validation.js';
@@ -231,6 +232,35 @@ export const votingOrientationsTool: ToolDefinition = {
 };
 
 // ============================================================================
+// Voting Statistics Tool
+// ============================================================================
+
+async function votingStatisticsHandler(args: unknown, context: ToolContext): Promise<ToolResult> {
+  const params = validateToolInput(VotingStatisticsSchema, args, 'votacao_estatisticas');
+  context.logger.debug('Getting voting statistics', { params });
+
+  try {
+    const response = await context.httpClient.get<unknown>(`/votacao/${params.codigo}/estatisticas`, {});
+    const text = JSON.stringify(response.data, null, 2);
+    return {
+      content: [{ type: 'text', text: `Estatísticas da Votação:\n\n${text}` }],
+    };
+  } catch (error) {
+    context.logger.error('Failed to get voting statistics', error as Error);
+    throw error;
+  }
+}
+
+export const votingStatisticsTool: ToolDefinition = {
+  name: 'votacao_estatisticas',
+  description:
+    'Obtém estatísticas detalhadas de uma votação. Inclui análises por partido, UF, gênero, e outras métricas estatísticas sobre o comportamento dos senadores na votação.',
+  inputSchema: zodToJsonSchema(VotingStatisticsSchema),
+  handler: votingStatisticsHandler,
+  category: 'voting',
+};
+
+// ============================================================================
 // Export all voting tools
 // ============================================================================
 
@@ -239,4 +269,5 @@ export const votingTools: ToolDefinition[] = [
   votingDetailsTool,
   votingVotesTool,
   votingOrientationsTool,
+  votingStatisticsTool,
 ];
