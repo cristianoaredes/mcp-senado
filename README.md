@@ -397,55 +397,273 @@ docker logs -f mcp-senado
 
 ### 4️⃣ Cloudflare Workers (Edge Computing)
 
-Deploy global em 300+ data centers:
+Deploy global em 300+ data centers com **Durable Objects** para estado persistente:
 
-**Instalação do Wrangler:**
+#### 🎯 Arquitetura com Durable Objects
+
+O MCP Senado utiliza **4 Durable Objects** para gerenciar estado distribuído:
+
+| Durable Object | Função | Benefício |
+|---|---|---|
+| **CacheDurableObject** | Cache LRU persistente com TTL | Cache compartilhado entre todas as requisições globalmente |
+| **RateLimiterDurableObject** | Rate limiting com token bucket | Limites de taxa distribuídos e precisos |
+| **CircuitBreakerDurableObject** | Circuit breaker pattern (CLOSED/OPEN/HALF_OPEN) | Proteção contra falhas em cascata da API |
+| **MetricsDurableObject** | Métricas agregadas e analytics | Observabilidade em tempo real de todas as requisições |
+
+**Por que Durable Objects?**
+- 🔄 **Estado persistente** entre todas as requisições Workers
+- 🌍 **Consistência global** através de todos os 300+ data centers
+- ⚡ **Performance** com cache compartilhado e circuit breaker distribuído
+- 📊 **Métricas precisas** agregadas de todas as instâncias Workers
+
+#### 📋 Pré-requisitos
+
+1. **Conta Cloudflare** com acesso a Durable Objects (plano Workers Paid - $5/mês)
+2. **Wrangler CLI** instalado
 
 ```bash
 npm install -g wrangler
 wrangler login
 ```
 
-**Deploy:**
+#### 🚀 Deploy Passo a Passo
+
+**1. Build do projeto:**
 
 ```bash
-# Build do projeto
 npm run build
-
-# Deploy para desenvolvimento
-npm run deploy:workers
-
-# Deploy para produção
-npm run deploy:workers:production
 ```
 
-**Desenvolvimento local:**
+Isso compila TypeScript para JavaScript e gera:
+- `build/workers/index.js` - Entry point do Worker
+- `build/durable-objects/*.js` - Código dos Durable Objects
+
+**2. Deploy inicial (development):**
 
 ```bash
-npm run dev:workers
-# Servidor em http://localhost:8787
+npm run deploy:workers
+# ou manualmente:
+wrangler deploy --env development
 ```
 
-**Configuração (`wrangler.toml`):**
+**3. Deploy para produção:**
+
+```bash
+npm run deploy:workers:production
+# ou manualmente:
+wrangler deploy --env production
+```
+
+**4. Verificar deployment:**
+
+```bash
+# Ver status dos Durable Objects
+wrangler deployments list
+
+# Logs em tempo real
+wrangler tail
+```
+
+#### 🔧 Configuração (`wrangler.toml`)
 
 ```toml
 name = "mcp-senado"
 main = "build/workers/index.js"
 compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
 
+# Durable Objects Bindings
+[[durable_objects.bindings]]
+name = "CACHE"
+class_name = "CacheDurableObject"
+script_name = "mcp-senado"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiterDurableObject"
+script_name = "mcp-senado"
+
+[[durable_objects.bindings]]
+name = "CIRCUIT_BREAKER"
+class_name = "CircuitBreakerDurableObject"
+script_name = "mcp-senado"
+
+[[durable_objects.bindings]]
+name = "METRICS"
+class_name = "MetricsDurableObject"
+script_name = "mcp-senado"
+
+# Migrations (necessário para criar DOs)
+[[migrations]]
+tag = "v1"
+new_classes = ["CacheDurableObject", "RateLimiterDurableObject", "CircuitBreakerDurableObject", "MetricsDurableObject"]
+
+# Variáveis de ambiente
 [vars]
-SENADO_API_BASE_URL = "https://legis.senado.leg.br/dadosabertos/"
-WORKERS_CORS_ORIGIN = "*"
+MCP_SERVER_NAME = "mcp-senado"
+MCP_SERVER_VERSION = "1.0.0"
+SENADO_API_BASE_URL = "https://legis.senado.leg.br/dadosabertos"
+SENADO_API_TIMEOUT = "30000"
+
+# Cache
 MCP_CACHE_ENABLED = "true"
-MCP_CACHE_TTL = "300"
+MCP_CACHE_TTL = "300000"  # 5 minutos
+
+# Rate Limiting
+MCP_RATE_LIMIT_ENABLED = "true"
+MCP_RATE_LIMIT_MAX_TOKENS = "30"
+MCP_RATE_LIMIT_REFILL_RATE = "0.5"  # 0.5 tokens/segundo
+
+# Circuit Breaker
+MCP_CIRCUIT_BREAKER_ENABLED = "true"
+MCP_CIRCUIT_BREAKER_THRESHOLD = "5"   # Falhas para abrir
+MCP_CIRCUIT_BREAKER_TIMEOUT = "60000" # 1 minuto
+
+# Logging
+MCP_LOG_LEVEL = "INFO"
+
+# Ambientes
+[env.development]
+name = "mcp-senado-dev"
+vars = { ENVIRONMENT = "development" }
+
+[env.production]
+name = "mcp-senado-prod"
+vars = { ENVIRONMENT = "production" }
+# Descomentar e configurar sua rota:
+# route = "mcp-senado.seudominio.com/*"
 ```
 
-**Benefícios:**
-- ⚡ Zero cold starts
-- 🌍 Latência ultra-baixa global
-- 📈 Escalabilidade automática
-- 💰 Tier gratuito: 100.000 req/dia
-- 🛡️ DDoS protection incluído
+#### 🧪 Desenvolvimento Local
+
+```bash
+# Iniciar servidor de desenvolvimento com Durable Objects
+npm run dev:workers
+
+# Servidor estará disponível em:
+# http://localhost:8787
+```
+
+**Testando endpoints:**
+
+```bash
+# Health check
+curl http://localhost:8787/health
+
+# Listar ferramentas MCP
+curl http://localhost:8787/v1/tools/list
+
+# Invocar ferramenta
+curl -X POST http://localhost:8787/v1/tools/invoke \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "get_senator",
+    "arguments": {"codigo": "5012"}
+  }'
+
+# Métricas (do MetricsDurableObject)
+curl http://localhost:8787/v1/metrics/global
+```
+
+#### 📊 Monitoramento de Durable Objects
+
+**1. Métricas globais:**
+```bash
+curl https://mcp-senado-prod.seu-worker.workers.dev/v1/metrics/global
+```
+
+**2. Estatísticas de cache:**
+```bash
+curl https://mcp-senado-prod.seu-worker.workers.dev/v1/cache/stats
+```
+
+**3. Status do circuit breaker:**
+```bash
+curl https://mcp-senado-prod.seu-worker.workers.dev/v1/circuit-breaker/stats
+```
+
+**4. Rate limiter status:**
+```bash
+curl https://mcp-senado-prod.seu-worker.workers.dev/v1/rate-limiter/stats
+```
+
+#### 🎯 Boas Práticas
+
+1. **Sempre faça build antes de deploy:**
+   ```bash
+   npm run build && npm run deploy:workers
+   ```
+
+2. **Teste localmente antes de produção:**
+   ```bash
+   npm run dev:workers
+   # Testar thoroughly
+   npm run deploy:workers  # Deploy em dev primeiro
+   ```
+
+3. **Monitor logs em produção:**
+   ```bash
+   wrangler tail --env production
+   ```
+
+4. **Use variáveis de ambiente corretas para cada ambiente:**
+   - Development: mais logs, cache TTL menor
+   - Production: logs INFO/WARN, cache TTL otimizado
+
+#### 💰 Custos
+
+**Cloudflare Workers + Durable Objects:**
+
+| Recurso | Free Tier | Paid Plan ($5/mês) |
+|---|---|---|
+| Workers Requests | 100.000/dia | 10M incluídos |
+| CPU Time | 10ms/req | 50ms/req |
+| **Durable Objects** | ❌ Não disponível | ✅ Incluído |
+| DO Requests | - | 1M incluídos |
+| DO Storage | - | 1GB incluído |
+
+**Estimativa de custos para 1M requisições/mês:**
+- Workers: ~$0-5 (dependendo do uso)
+- Durable Objects: ~$0-5 (storage + requests)
+- **Total: ~$5-10/mês** para tráfego moderado
+
+#### 🔐 Segurança
+
+**Secrets (valores sensíveis):**
+
+```bash
+# Definir API key (opcional)
+wrangler secret put MCP_API_KEY --env production
+
+# Definir tokens de autenticação
+wrangler secret put WORKERS_AUTH_TOKEN --env production
+```
+
+**Habilitar autenticação no Worker:**
+
+```toml
+[env.production.vars]
+WORKERS_AUTH_ENABLED = "true"
+```
+
+Então use o header `Authorization` nas requisições:
+```bash
+curl -H "Authorization: Bearer seu-token-aqui" \
+  https://mcp-senado-prod.seu-worker.workers.dev/v1/tools/list
+```
+
+#### ✨ Benefícios do Deploy com Durable Objects
+
+- ⚡ **Zero cold starts** - Workers sempre quentes
+- 🌍 **Latência ultra-baixa** - 300+ data centers globalmente
+- 🔄 **Cache persistente** - Compartilhado entre todas as requisições
+- 🛡️ **Circuit breaker distribuído** - Proteção contra falhas da API do Senado
+- 📊 **Métricas precisas** - Analytics em tempo real agregadas
+- 📈 **Escalabilidade automática** - De 0 a milhões de requisições
+- 💰 **Custo otimizado** - Pague apenas pelo que usar
+- 🔐 **DDoS protection** - Incluído automaticamente
+- 🚀 **Deploy em segundos** - CI/CD integrado
+- 🧪 **Desenvolvimento local fácil** - Emulador completo de DOs
 
 ---
 

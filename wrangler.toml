@@ -1,12 +1,38 @@
 # Cloudflare Workers Configuration for MCP Senado Federal
 
 name = "mcp-senado"
-main = "build/lib/workers/worker.js"
+main = "build/workers/index.js"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 # Account information (set via environment or CLI)
 # account_id = ""
+
+# Durable Objects - Persistent state across all Workers instances
+[[durable_objects.bindings]]
+name = "CACHE"
+class_name = "CacheDurableObject"
+script_name = "mcp-senado"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiterDurableObject"
+script_name = "mcp-senado"
+
+[[durable_objects.bindings]]
+name = "CIRCUIT_BREAKER"
+class_name = "CircuitBreakerDurableObject"
+script_name = "mcp-senado"
+
+[[durable_objects.bindings]]
+name = "METRICS"
+class_name = "MetricsDurableObject"
+script_name = "mcp-senado"
+
+# Durable Objects Migrations
+[[migrations]]
+tag = "v1"
+new_classes = ["CacheDurableObject", "RateLimiterDurableObject", "CircuitBreakerDurableObject", "MetricsDurableObject"]
 
 # Development environment
 [env.development]
@@ -24,16 +50,6 @@ name = "mcp-senado-prod"
 vars = { ENVIRONMENT = "production" }
 # Uncomment and set your production route
 # route = "mcp-senado.aredes.me/*"
-
-# KV Namespace for caching (create via: wrangler kv:namespace create MCP_CACHE)
-[[kv_namespaces]]
-binding = "MCP_CACHE"
-# id = "YOUR_KV_NAMESPACE_ID"  # Set this after creating the namespace
-
-# KV Namespace for rate limiting (create via: wrangler kv:namespace create RATE_LIMIT)
-[[kv_namespaces]]
-binding = "RATE_LIMIT_KV"
-# id = "YOUR_KV_NAMESPACE_ID"  # Set this after creating the namespace
 
 # Environment variables (non-secret)
 [vars]
