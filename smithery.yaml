@@ -1,0 +1,91 @@
+name: mcp-senado
+version: 1.0.0
+description: MCP server for Brazilian Federal Senate Open Data API. Access legislative data including senators, proposals, voting records, committees, and parties.
+author: Cristiano Aredes
+license: MIT
+homepage: https://github.com/cristianoaredes/mcp-senado
+repository: https://github.com/cristianoaredes/mcp-senado
+
+# Installation method
+install:
+  npm: "@aredes.me/mcp-senado"
+
+# Supported MCP clients
+clients:
+  - claude
+  - cursor
+  - windsurf
+  - continue
+
+# Configuration
+config:
+  env:
+    - name: SENADO_API_BASE_URL
+      description: Base URL for the Senado Federal Open Data API
+      default: "https://legis.senado.leg.br/dadosabertos"
+      required: false
+
+    - name: MCP_CACHE_ENABLED
+      description: Enable response caching for better performance
+      default: "true"
+      required: false
+
+    - name: MCP_CACHE_TTL
+      description: Cache time-to-live in milliseconds
+      default: "300000"
+      required: false
+
+    - name: MCP_RATE_LIMIT_ENABLED
+      description: Enable rate limiting to protect API
+      default: "true"
+      required: false
+
+    - name: MCP_LOG_LEVEL
+      description: Logging level (DEBUG, INFO, WARN, ERROR)
+      default: "INFO"
+      required: false
+
+# Categories
+categories:
+  - government
+  - data
+  - brazil
+  - legislative
+  - politics
+
+# Keywords
+keywords:
+  - senado
+  - brazil
+  - legislative
+  - senate
+  - politics
+  - government
+  - open-data
+  - dados-abertos
+
+# Tools provided (high-level categories)
+tools:
+  - name: Senator Tools
+    description: Query information about Brazilian senators including biography, voting records, and activities
+    count: 15
+
+  - name: Proposal Tools
+    description: Access legislative proposals, bills, amendments, and their progress
+    count: 10
+
+  - name: Voting Tools
+    description: Access voting records, results, and individual senator votes
+    count: 5
+
+  - name: Committee Tools
+    description: Query Senate committees, their composition, and activities
+    count: 5
+
+  - name: Party Tools
+    description: Analyze political parties and parliamentary blocs
+    count: 5
+
+  - name: Reference Tools
+    description: Access reference data and classifications
+    count: 10

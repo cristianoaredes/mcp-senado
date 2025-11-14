@@ -1,0 +1,77 @@
+# Dependencies (will be installed in container)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build output (will be built in container)
+build/
+dist/
+*.tsbuildinfo
+
+# Development and testing
+.git/
+.github/
+.vscode/
+.idea/
+coverage/
+.nyc_output/
+__tests__/
+*.test.ts
+*.spec.ts
+vitest.config.ts
+.vitest/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Documentation (except README and LICENSE)
+docs/
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+CHANGELOG.md
+*.md
+!README.md
+
+# CI/CD
+.gitlab-ci.yml
+.travis.yml
+codecov.yml
+azure-pipelines.yml
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Cache
+.cache/
+.parcel-cache/
+
+# NPM packages
+*.tgz
+
+# Cloudflare Workers
+.wrangler/
+wrangler.toml
+wrangler.toml.local
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml

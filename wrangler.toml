@@ -1,0 +1,60 @@
+# Cloudflare Workers Configuration for MCP Senado Federal
+
+name = "mcp-senado"
+main = "build/lib/workers/worker.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Account information (set via environment or CLI)
+# account_id = ""
+
+# Development environment
+[env.development]
+name = "mcp-senado-dev"
+vars = { ENVIRONMENT = "development" }
+
+# Staging environment
+[env.staging]
+name = "mcp-senado-staging"
+vars = { ENVIRONMENT = "staging" }
+
+# Production environment
+[env.production]
+name = "mcp-senado-prod"
+vars = { ENVIRONMENT = "production" }
+# Uncomment and set your production route
+# route = "mcp-senado.aredes.me/*"
+
+# KV Namespace for caching (create via: wrangler kv:namespace create MCP_CACHE)
+[[kv_namespaces]]
+binding = "MCP_CACHE"
+# id = "YOUR_KV_NAMESPACE_ID"  # Set this after creating the namespace
+
+# KV Namespace for rate limiting (create via: wrangler kv:namespace create RATE_LIMIT)
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+# id = "YOUR_KV_NAMESPACE_ID"  # Set this after creating the namespace
+
+# Environment variables (non-secret)
+[vars]
+MCP_SERVER_NAME = "mcp-senado"
+MCP_SERVER_VERSION = "1.0.0"
+SENADO_API_BASE_URL = "https://legis.senado.leg.br/dadosabertos"
+SENADO_API_TIMEOUT = "30000"
+MCP_CACHE_ENABLED = "true"
+MCP_CACHE_TTL = "300000"
+MCP_RATE_LIMIT_ENABLED = "true"
+MCP_RATE_LIMIT_TOKENS = "30"
+MCP_LOG_LEVEL = "INFO"
+
+# Secrets (set via: wrangler secret put SECRET_NAME)
+# MCP_API_KEY - Optional API key for authentication
+# Run: wrangler secret put MCP_API_KEY
+
+# Build configuration
+[build]
+command = "npm run build"
+
+# Observability
+[observability]
+enabled = true

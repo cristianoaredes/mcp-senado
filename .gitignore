@@ -43,6 +43,9 @@ tmp/
 temp/
 *.tmp
 
+# NPM package tarballs
+*.tgz
+
 # Cache
 .cache/
 .parcel-cache/

@@ -3,10 +3,11 @@
   "version": "0.1.0",
   "description": "MCP server for Brazilian Federal Senate (Senado Federal) Open Data API - Access legislative data through AI assistants",
   "type": "module",
-  "main": "build/lib/index.js",
-  "types": "build/lib/index.d.ts",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
   "bin": {
-    "mcp-senado": "build/lib/bin/mcp-senado.js"
+    "mcp-senado": "build/bin/mcp-senado.js",
+    "mcp-senado-http": "build/bin/mcp-senado-http.js"
   },
   "files": [
     "build/",
@@ -16,6 +17,12 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx watch lib/bin/mcp-senado.ts",
+    "dev:http": "tsx watch lib/bin/mcp-senado-http.ts",
+    "dev:workers": "wrangler dev",
+    "start:http": "node build/bin/mcp-senado-http.js",
+    "deploy:workers": "npm run build && wrangler deploy",
+    "deploy:workers:staging": "npm run build && wrangler deploy --env staging",
+    "deploy:workers:production": "npm run build && wrangler deploy --env production",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -62,12 +69,14 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "dotenv": "^16.4.5",
-    "express": "^5.0.0",
+    "express": "^5.1.0",
+    "fast-xml-parser": "^4.3.4",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/express": "^5.0.0",
+    "@types/express": "^5.0.5",
     "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^4.0.0",
     "tsx": "^4.0.0",
     "typescript": "^5.7.0",
     "vitest": "^4.0.0",
