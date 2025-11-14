@@ -1,16 +1,23 @@
 /**
- * Cloudflare Workers Entry Point
+ * Cloudflare Workers Entry Point with Durable Objects
  *
- * Edge deployment for MCP Senado Server
+ * Edge deployment for MCP Senado Server with persistent state
  */
 
 import { createLogger } from '../infrastructure/logger.js';
 import { createHttpClient } from '../infrastructure/http-client.js';
-import { createCache } from '../infrastructure/cache.js';
-import { createCircuitBreaker } from '../infrastructure/circuit-breaker.js';
 import { createToolRegistry } from '../core/tools.js';
 import { createWorkersAdapter } from '../adapters/workers.js';
-import type { ToolContext, LogLevel } from '../types/index.js';
+import type {
+  ToolContext,
+  LogLevel,
+  Logger,
+  CacheInterface,
+  CacheStats,
+  CircuitBreaker,
+  CircuitBreakerStats,
+  CircuitState,
+} from '../types/index.js';
 
 // Import all tools
 import { referenceTools } from '../tools/reference-tools.js';
@@ -21,8 +28,20 @@ import { committeeTools } from '../tools/committee-tools.js';
 import { partyTools } from '../tools/party-tools.js';
 import { sessionTools } from '../tools/session-tools.js';
 
+// Export Durable Objects so Cloudflare can find them
+export { CacheDurableObject } from '../durable-objects/cache-do.js';
+export { RateLimiterDurableObject } from '../durable-objects/rate-limiter-do.js';
+export { CircuitBreakerDurableObject } from '../durable-objects/circuit-breaker-do.js';
+export { MetricsDurableObject } from '../durable-objects/metrics-do.js';
+
 // Environment variables interface for Cloudflare Workers
 interface Env {
+  // Durable Object Bindings
+  CACHE: DurableObjectNamespace;
+  RATE_LIMITER: DurableObjectNamespace;
+  CIRCUIT_BREAKER: DurableObjectNamespace;
+  METRICS: DurableObjectNamespace;
+
   // API Configuration
   SENADO_API_BASE_URL?: string;
 
@@ -38,8 +57,8 @@ interface Env {
 
   // Rate Limiting
   MCP_RATE_LIMIT_ENABLED?: string;
-  MCP_RATE_LIMIT_MAX_REQUESTS?: string;
-  MCP_RATE_LIMIT_WINDOW_MS?: string;
+  MCP_RATE_LIMIT_MAX_TOKENS?: string;
+  MCP_RATE_LIMIT_REFILL_RATE?: string;
 
   // Circuit Breaker
   MCP_CIRCUIT_BREAKER_ENABLED?: string;
@@ -60,7 +79,8 @@ interface Env {
  * Get environment variable with default value
  */
 function getEnv(env: Env, key: keyof Env, defaultValue: string = ''): string {
-  return env[key] || defaultValue;
+  const value = env[key];
+  return typeof value === 'string' ? value : defaultValue;
 }
 
 /**
@@ -68,7 +88,7 @@ function getEnv(env: Env, key: keyof Env, defaultValue: string = ''): string {
  */
 function getEnvNumber(env: Env, key: keyof Env, defaultValue: number): number {
   const value = env[key];
-  return value ? parseInt(value, 10) : defaultValue;
+  return typeof value === 'string' ? parseInt(value, 10) : defaultValue;
 }
 
 /**
@@ -76,7 +96,7 @@ function getEnvNumber(env: Env, key: keyof Env, defaultValue: number): number {
  */
 function getEnvBoolean(env: Env, key: keyof Env, defaultValue: boolean): boolean {
   const value = env[key];
-  return value ? value === 'true' : defaultValue;
+  return typeof value === 'string' ? value === 'true' : defaultValue;
 }
 
 /**
@@ -97,7 +117,216 @@ function mapLogLevel(level: string): LogLevel {
 }
 
 /**
- * Initialize MCP Senado for Cloudflare Workers
+ * Durable Object Cache Adapter
+ *
+ * Wraps Durable Object HTTP calls to implement CacheInterface
+ */
+class DurableObjectCacheAdapter implements CacheInterface {
+  private stub: DurableObjectStub;
+  private logger: Logger;
+  private enabled: boolean;
+
+  constructor(stub: DurableObjectStub, logger: Logger, enabled: boolean = true) {
+    this.stub = stub;
+    this.logger = logger;
+    this.enabled = enabled;
+  }
+
+  async get<T>(key: string): Promise<T | null> {
+    if (!this.enabled) {
+      return null;
+    }
+
+    try {
+      const url = new URL('http://do/get');
+      url.searchParams.set('key', key);
+      const response = await this.stub.fetch(url.toString());
+      const data = await response.json() as { found: boolean; value?: T };
+
+      if (data.found && data.value !== undefined) {
+        this.logger.debug('Cache hit (DO)', { key });
+        return data.value;
+      }
+
+      this.logger.debug('Cache miss (DO)', { key });
+      return null;
+    } catch (error) {
+      this.logger.error('Cache get error (DO)', error as Error, { key });
+      return null;
+    }
+  }
+
+  async set<T>(key: string, value: T, ttl?: number): Promise<void> {
+    if (!this.enabled) {
+      return;
+    }
+
+    try {
+      await this.stub.fetch('http://do/set', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, value, ttl }),
+      });
+      this.logger.debug('Cache set (DO)', { key, ttl });
+    } catch (error) {
+      this.logger.error('Cache set error (DO)', error as Error, { key });
+    }
+  }
+
+  async delete(key: string): Promise<void> {
+    if (!this.enabled) {
+      return;
+    }
+
+    try {
+      const url = new URL('http://do/delete');
+      url.searchParams.set('key', key);
+      await this.stub.fetch(url.toString(), { method: 'DELETE' });
+      this.logger.debug('Cache delete (DO)', { key });
+    } catch (error) {
+      this.logger.error('Cache delete error (DO)', error as Error, { key });
+    }
+  }
+
+  async clear(): Promise<void> {
+    if (!this.enabled) {
+      return;
+    }
+
+    try {
+      await this.stub.fetch('http://do/clear', { method: 'POST' });
+      this.logger.info('Cache cleared (DO)');
+    } catch (error) {
+      this.logger.error('Cache clear error (DO)', error as Error);
+    }
+  }
+
+  generateKey(prefix: string, params: Record<string, unknown>): string {
+    // Sort params by key for consistent cache keys
+    const sortedParams = Object.keys(params)
+      .sort()
+      .map((key) => `${key}=${JSON.stringify(params[key])}`)
+      .join('&');
+
+    return `${prefix}:${sortedParams}`;
+  }
+
+  getStats(): CacheStats {
+    // Stats are async in DO, return placeholder
+    // Could be enhanced to cache stats locally or fetch async
+    return {
+      hits: 0,
+      misses: 0,
+      size: 0,
+      hitRate: 0,
+    };
+  }
+}
+
+/**
+ * Durable Object Circuit Breaker Adapter
+ *
+ * Wraps Durable Object HTTP calls to implement CircuitBreaker interface
+ */
+class DurableObjectCircuitBreakerAdapter implements CircuitBreaker {
+  private stub: DurableObjectStub;
+  private logger: Logger;
+  private enabled: boolean;
+  private config: {
+    failureThreshold: number;
+    successThreshold: number;
+    timeout: number;
+  };
+  private circuitKey: string;
+
+  constructor(
+    stub: DurableObjectStub,
+    logger: Logger,
+    config: { failureThreshold: number; successThreshold: number; timeout: number },
+    enabled: boolean = true
+  ) {
+    this.stub = stub;
+    this.logger = logger;
+    this.config = config;
+    this.enabled = enabled;
+    this.circuitKey = 'senado-api';
+  }
+
+  async execute<T>(fn: () => Promise<T>): Promise<T> {
+    if (!this.enabled) {
+      return await fn();
+    }
+
+    // Check if circuit allows request
+    try {
+      const checkResponse = await this.stub.fetch('http://do/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: this.circuitKey,
+          failureThreshold: this.config.failureThreshold,
+          successThreshold: this.config.successThreshold,
+          timeout: this.config.timeout,
+        }),
+      });
+
+      const checkData = await checkResponse.json() as {
+        allowed: boolean;
+        state: CircuitState;
+      };
+
+      if (!checkData.allowed) {
+        this.logger.warn('Circuit breaker OPEN (DO)', { state: checkData.state });
+        throw new Error('Circuit breaker is OPEN');
+      }
+
+      // Execute function
+      try {
+        const result = await fn();
+
+        // Record success
+        await this.stub.fetch('http://do/recordSuccess', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: this.circuitKey }),
+        });
+
+        return result;
+      } catch (error) {
+        // Record failure
+        await this.stub.fetch('http://do/recordFailure', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: this.circuitKey }),
+        });
+
+        throw error;
+      }
+    } catch (error) {
+      this.logger.error('Circuit breaker error (DO)', error as Error);
+      // Fallback to executing function on DO errors
+      return await fn();
+    }
+  }
+
+  getState(): CircuitState {
+    // State is async in DO, return default
+    // Could be enhanced to cache state locally
+    return 'CLOSED' as CircuitState;
+  }
+
+  getStats(): CircuitBreakerStats {
+    // Stats are async in DO, return placeholder
+    return {
+      state: 'CLOSED' as CircuitState,
+      failures: 0,
+      successes: 0,
+    };
+  }
+}
+
+/**
+ * Initialize MCP Senado for Cloudflare Workers with Durable Objects
  */
 function initializeMCPSenado(env: Env) {
   // Create logger
@@ -107,38 +336,45 @@ function initializeMCPSenado(env: Env) {
     maskPII: getEnvBoolean(env, 'MCP_LOG_MASK_PII', false),
   });
 
-  logger.info('Initializing MCP Senado Federal for Cloudflare Workers');
+  logger.info('Initializing MCP Senado Federal for Cloudflare Workers with Durable Objects');
 
-  // Create infrastructure components
-  const circuitBreaker = createCircuitBreaker(
+  // Get Durable Object stubs (using unique IDs for global singleton pattern)
+  const cacheId = env.CACHE.idFromName('global-cache');
+  const cacheStub = env.CACHE.get(cacheId);
+
+  const circuitBreakerId = env.CIRCUIT_BREAKER.idFromName('global-circuit-breaker');
+  const circuitBreakerStub = env.CIRCUIT_BREAKER.get(circuitBreakerId);
+
+  const metricsId = env.METRICS.idFromName('global-metrics');
+  const metricsStub = env.METRICS.get(metricsId);
+
+  // Create infrastructure components using Durable Objects
+  const cache = new DurableObjectCacheAdapter(
+    cacheStub,
+    logger,
+    getEnvBoolean(env, 'MCP_CACHE_ENABLED', true)
+  );
+
+  const circuitBreaker = new DurableObjectCircuitBreakerAdapter(
+    circuitBreakerStub,
+    logger,
     {
       failureThreshold: getEnvNumber(env, 'MCP_CIRCUIT_BREAKER_THRESHOLD', 5),
       successThreshold: 2,
       timeout: getEnvNumber(env, 'MCP_CIRCUIT_BREAKER_TIMEOUT', 60000),
     },
-    logger,
     getEnvBoolean(env, 'MCP_CIRCUIT_BREAKER_ENABLED', true)
   );
 
   const httpClient = createHttpClient(
     {
-      baseUrl: getEnv(env, 'SENADO_API_BASE_URL', 'https://legis.senado.leg.br/dadosabertos/'),
+      baseUrl: getEnv(env, 'SENADO_API_BASE_URL', 'https://legis.senado.leg.br/dadosabertos'),
       timeout: getEnvNumber(env, 'MCP_HTTP_TIMEOUT', 30000),
       maxRetries: getEnvNumber(env, 'MCP_HTTP_RETRY_ATTEMPTS', 3),
       retryDelay: getEnvNumber(env, 'MCP_HTTP_RETRY_DELAY', 1000),
     },
     logger,
     circuitBreaker
-  );
-
-  const cache = createCache(
-    {
-      ttl: getEnvNumber(env, 'MCP_CACHE_TTL', 300) * 1000,
-      maxSize: getEnvNumber(env, 'MCP_CACHE_MAX_SIZE', 1000),
-      cleanupInterval: 60000,
-    },
-    logger,
-    getEnvBoolean(env, 'MCP_CACHE_ENABLED', true)
   );
 
   // Create tool registry
@@ -159,18 +395,17 @@ function initializeMCPSenado(env: Env) {
   });
 
   // Create tool context
-  // Note: Using partial config - tools only use specific fields they need
   const toolContext = {
     httpClient,
     cache,
     config: {
-      apiBaseUrl: getEnv(env, 'SENADO_API_BASE_URL', 'https://legis.senado.leg.br/dadosabertos/'),
+      apiBaseUrl: getEnv(env, 'SENADO_API_BASE_URL', 'https://legis.senado.leg.br/dadosabertos'),
       cacheEnabled: getEnvBoolean(env, 'MCP_CACHE_ENABLED', true),
       cacheTTL: getEnvNumber(env, 'MCP_CACHE_TTL', 300),
       cacheMaxSize: getEnvNumber(env, 'MCP_CACHE_MAX_SIZE', 1000),
       rateLimitEnabled: getEnvBoolean(env, 'MCP_RATE_LIMIT_ENABLED', true),
-      rateLimitMaxRequests: getEnvNumber(env, 'MCP_RATE_LIMIT_MAX_REQUESTS', 30),
-      rateLimitWindowMs: getEnvNumber(env, 'MCP_RATE_LIMIT_WINDOW_MS', 60000),
+      rateLimitMaxRequests: getEnvNumber(env, 'MCP_RATE_LIMIT_MAX_TOKENS', 30),
+      rateLimitWindowMs: 60000, // Not used with DO token bucket
       circuitBreakerEnabled: getEnvBoolean(env, 'MCP_CIRCUIT_BREAKER_ENABLED', true),
       circuitBreakerThreshold: getEnvNumber(env, 'MCP_CIRCUIT_BREAKER_THRESHOLD', 5),
       circuitBreakerTimeout: getEnvNumber(env, 'MCP_CIRCUIT_BREAKER_TIMEOUT', 60000),
@@ -182,10 +417,38 @@ function initializeMCPSenado(env: Env) {
     logger,
   } as unknown as ToolContext;
 
-  // Override tool registry invoke to inject context
+  // Override tool registry invoke to inject context and track metrics
   const originalInvoke = toolRegistry.invoke.bind(toolRegistry);
   toolRegistry.invoke = async (name: string, args: unknown) => {
-    return originalInvoke(name, args, toolContext);
+    const startTime = Date.now();
+    let success = true;
+
+    try {
+      const result = await originalInvoke(name, args, toolContext);
+      return result;
+    } catch (error) {
+      success = false;
+      throw error;
+    } finally {
+      const duration = Date.now() - startTime;
+
+      // Record metrics to Durable Object (fire and forget)
+      const tool = toolRegistry.get(name);
+      if (tool) {
+        metricsStub.fetch('http://do/record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tool: name,
+            category: tool.category,
+            success,
+            duration,
+          }),
+        }).catch((error) => {
+          logger.warn('Failed to record metrics', { error });
+        });
+      }
+    }
   };
 
   // Create Workers adapter
@@ -195,7 +458,7 @@ function initializeMCPSenado(env: Env) {
     authToken: getEnv(env, 'WORKERS_AUTH_TOKEN'),
   });
 
-  logger.info('Workers adapter initialized');
+  logger.info('Workers adapter initialized with Durable Objects');
 
   return workersAdapter;
 }
@@ -205,7 +468,9 @@ function initializeMCPSenado(env: Env) {
  */
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // Initialize adapter (this could be cached in Workers KV or Durable Objects for performance)
+    // Initialize adapter
+    // Note: In production, this initialization happens on each request
+    // but Durable Objects maintain persistent state across requests
     const adapter = initializeMCPSenado(env);
 
     // Handle request

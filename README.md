@@ -1,4 +1,7 @@
-# MCP Senado Federal
+# MCP Senado Federal 🇧🇷
+
+> **Servidor MCP para API de Dados Abertos do Senado Federal Brasileiro**
+> Conecte assistentes de IA como Claude, Cursor, Windsurf e Continue.dev aos dados legislativos oficiais do Congresso Nacional
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml/badge.svg)](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml)
@@ -6,59 +9,153 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![Tests](https://img.shields.io/badge/Tests-211%20passing-brightgreen.svg)](https://github.com/cristianoaredes/mcp-senado)
 [![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow.svg)](https://github.com/cristianoaredes/mcp-senado)
+[![NPM](https://img.shields.io/badge/NPM-@aredes.me/mcp--senado-red.svg)](https://www.npmjs.com/package/@aredes.me/mcp-senado)
 
-MCP (Model Context Protocol) server for the Brazilian Federal Senate (Senado Federal) Open Data API. Enable AI assistants like Claude, Cursor, Windsurf, and Continue.dev to access comprehensive legislative data from the Brazilian Senate.
+[English](./README.en.md) | **Português** | [Documentação Completa](#-documentação) | [Contribuir](./CONTRIBUTING.md)
 
-## 🎯 Features
+---
 
-- **56 Tools** across 7 categories for comprehensive legislative data access
-- **Multi-Transport**: stdio (MCP standard) and HTTP/REST API
-- **Production-Ready**: Circuit breaker, rate limiting, caching, and monitoring
-- **Type-Safe**: Full TypeScript with strict mode
-- **Well-Documented**: Complete documentation in Portuguese and English
-- **Secure**: Input validation, PII masking, and LGPD compliance
+## 📋 Índice
 
-## 📦 Installation
+- [Visão Geral](#-visão-geral)
+- [Recursos Principais](#-recursos-principais)
+- [Instalação](#-instalação)
+- [Início Rápido](#-início-rápido)
+- [Ferramentas Disponíveis](#-ferramentas-disponíveis)
+- [Modos de Implantação](#-modos-de-implantação)
+- [Configuração](#-configuração)
+- [Exemplos de Uso](#-exemplos-de-uso)
+- [Documentação](#-documentação)
+- [Contribuindo](#-contribuindo)
+- [Licença](#-licença)
 
-### NPM (Recommended)
+---
+
+## 🎯 Visão Geral
+
+**MCP Senado Federal** é um servidor MCP (Model Context Protocol) de código aberto que conecta assistentes de inteligência artificial à **API de Dados Abertos do Senado Federal do Brasil**. Desenvolvido com TypeScript, oferece acesso programático a dados legislativos completos, incluindo informações sobre senadores, propostas legislativas, votações, comissões, partidos e sessões plenárias.
+
+### Por que usar?
+
+- 🤖 **Integração com IA**: Use ChatGPT, Claude, Cursor, Windsurf para consultar dados do Senado
+- 📊 **Dados Oficiais**: Acesso direto à fonte oficial de dados abertos do Senado Federal
+- 🚀 **Pronto para Produção**: Circuit breaker, rate limiting, cache e monitoramento incluídos
+- 🔒 **Seguro e Confiável**: Validação de entrada, conformidade com LGPD, tratamento robusto de erros
+- 🌍 **Deploy Global**: Suporte para Docker, Cloudflare Workers (edge computing) e HTTP/REST
+- 📚 **Bem Documentado**: Documentação completa em português e inglês
+
+### Casos de Uso
+
+- **Jornalismo de Dados**: Análise automatizada de votações e propostas legislativas
+- **Pesquisa Acadêmica**: Estudos sobre comportamento parlamentar e produção legislativa
+- **Transparência Pública**: Ferramentas de acompanhamento da atividade legislativa
+- **Aplicações Cívicas**: Chatbots e assistentes virtuais para educação política
+- **Análise Política**: Dashboards e relatórios sobre o Congresso Nacional
+
+---
+
+## ✨ Recursos Principais
+
+### 🛠️ 56 Ferramentas em 7 Categorias
+
+| Categoria | Ferramentas | Descrição |
+|-----------|-------------|-----------|
+| **Dados de Referência** | 10 ferramentas | Legislaturas, tipos de proposta, estados, comissões |
+| **Senadores** | 13 ferramentas | Busca, biografia, votações, propostas, discursos |
+| **Propostas Legislativas** | 12 ferramentas | Pesquisa, detalhes, votações, tramitação, textos |
+| **Votações** | 5 ferramentas | Sessões de votação, resultados, votos individuais |
+| **Comissões** | 5 ferramentas | Listagem, membros, reuniões, pautas |
+| **Partidos** | 5 ferramentas | Partidos, blocos, lideranças |
+| **Sessões Plenárias** | 6 ferramentas | Calendário, atas, discursos, resultados |
+
+### 🚀 Características Técnicas
+
+- ⚡ **Alto Desempenho**: Cache em memória com LRU, otimização de requisições
+- 🛡️ **Resiliência**: Circuit breaker para proteção contra falhas da API
+- 📊 **Monitoramento**: Logs estruturados, métricas, health checks
+- 🔄 **Rate Limiting**: Token bucket para controle de taxa de requisições
+- 🎯 **TypeScript Strict**: Type-safe com inferência de tipos completa
+- ✅ **Testado**: 211 testes (73% de cobertura), incluindo E2E
+- 🐳 **Containerizado**: Imagem Docker otimizada multi-stage (~150MB)
+- ⚡ **Edge Computing**: Deploy em Cloudflare Workers (300+ data centers)
+
+### 🔐 Segurança e Conformidade
+
+- ✅ Validação rigorosa de entrada com Zod schemas
+- ✅ Sanitização automática de dados
+- ✅ Mascaramento de PII (Personally Identifiable Information)
+- ✅ Conformidade com LGPD (Lei Geral de Proteção de Dados)
+- ✅ Autenticação opcional por token
+- ✅ CORS configurável
+- ✅ Rate limiting para prevenir abuso
+
+---
+
+## 📦 Instalação
+
+### Via NPM (Recomendado)
 
 ```bash
+# Instalação global
 npm install -g @aredes.me/mcp-senado
-```
 
-### Direct Execution
-
-```bash
+# Ou executar diretamente
 npx @aredes.me/mcp-senado
 ```
 
-## 🚀 Quick Start
+### Via Git (Desenvolvimento)
+
+```bash
+git clone https://github.com/cristianoaredes/mcp-senado.git
+cd mcp-senado
+npm install
+npm run build
+```
+
+### Requisitos
+
+- **Node.js** 18.x ou superior
+- **npm** 9.x ou superior
+- **Memória**: Mínimo 512MB RAM
+- **Sistema Operacional**: Linux, macOS, Windows (WSL2)
+
+---
+
+## 🚀 Início Rápido
 
 ### Claude Desktop
 
-Add to your `claude_desktop_config.json`:
+Adicione ao arquivo `claude_desktop_config.json`:
 
 ```json
 {
   "mcpServers": {
-    "senado": {
+    "senado-federal": {
       "command": "npx",
-      "args": ["@aredes.me/mcp-senado"]
+      "args": ["-y", "@aredes.me/mcp-senado"],
+      "env": {
+        "MCP_LOG_LEVEL": "info"
+      }
     }
   }
 }
 ```
 
+**Localização do arquivo de configuração:**
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
 ### Cursor / Windsurf
 
-Add to your MCP settings:
+Adicione às configurações MCP do editor:
 
 ```json
 {
   "mcpServers": {
-    "senado": {
+    "senado-federal": {
       "command": "npx",
-      "args": ["@aredes.me/mcp-senado"]
+      "args": ["-y", "@aredes.me/mcp-senado"]
     }
   }
 }
@@ -66,464 +163,868 @@ Add to your MCP settings:
 
 ### Continue.dev
 
-Add to your `config.json`:
+Adicione ao `config.json`:
 
 ```json
 {
   "mcpServers": [
     {
-      "name": "senado",
+      "name": "senado-federal",
       "command": "npx",
-      "args": ["@aredes.me/mcp-senado"]
+      "args": ["-y", "@aredes.me/mcp-senado"]
     }
   ]
 }
 ```
 
-## 🌐 HTTP Server Mode
+### Testando a Integração
 
-Run the server as a standalone HTTP API for web applications and services:
+Após configurar, pergunte ao seu assistente de IA:
 
-### Starting the Server
+```
+"Liste os senadores do estado de São Paulo"
+"Quais foram as últimas votações no Senado?"
+"Mostre propostas sobre educação tramitando no Senado"
+```
 
-**Development Mode:**
+---
+
+## 🛠️ Ferramentas Disponíveis
+
+### 📚 Dados de Referência (10 ferramentas)
+
+Acesso a dados fundamentais do sistema legislativo:
+
+- `ufs_listar` - Lista todos os estados brasileiros (UFs)
+- `legislaturas_listar` - Lista legislaturas do Senado Federal
+- `tipos_materia_listar` - Lista tipos de proposições legislativas
+- `situacoes_materia_listar` - Lista situações de tramitação
+- `tipos_comissao_listar` - Lista tipos de comissões
+- `tipos_autor_listar` - Lista tipos de autores
+- `tipos_sessao_listar` - Lista tipos de sessões
+- `tipos_votacao_listar` - Lista tipos de votações
+- `tipos_documento_listar` - Lista tipos de documentos
+- `assuntos_listar` - Lista classificações temáticas
+
+### 👥 Senadores (13 ferramentas)
+
+Informações completas sobre parlamentares:
+
+- `senadores_listar` - Busca senadores com filtros (nome, partido, UF, legislatura)
+- `senador_detalhes` - Detalhes completos de um senador específico
+- `senador_historico` - Histórico parlamentar e mandatos anteriores
+- `senador_votacoes` - Votações de um senador com filtros
+- `senador_materias` - Propostas de autoria do senador
+- `senador_discursos` - Discursos proferidos pelo senador
+- `senador_licencas` - Licenças e afastamentos
+- `senador_comissoes` - Participação em comissões
+- `senador_liderancas` - Cargos de liderança ocupados
+- `senador_filiacao` - Histórico de filiação partidária
+- `senador_profissoes` - Profissões declaradas
+- `senador_apartes` - Apartes realizados
+- `senador_relatorias` - Relatorias de proposições
+
+### 📜 Propostas Legislativas (12 ferramentas)
+
+Acesso completo ao processo legislativo:
+
+- `materias_pesquisar` - Busca avançada de proposições
+- `materia_detalhes` - Informações detalhadas da proposição
+- `materia_texto` - Texto integral da proposição
+- `materia_votacoes` - Votações relacionadas
+- `materia_tramitacao` - Histórico de tramitação
+- `materia_autores` - Autores e coautores
+- `materia_relacionadas` - Proposições relacionadas
+- `materia_emendas` - Emendas apresentadas
+- `materia_pareceres` - Pareceres emitidos
+- `materia_notas_tecnicas` - Notas técnicas
+- `materia_audiencias` - Audiências públicas relacionadas
+- `materia_documentos` - Documentos anexos
+
+### 🗳️ Votações (5 ferramentas)
+
+Resultados de votações nominais e simbólicas:
+
+- `votacoes_listar` - Lista votações com filtros
+- `votacao_detalhes` - Detalhes de votação específica
+- `votacao_votos` - Votos individuais dos senadores
+- `votacao_orientacoes` - Orientações de bancadas
+- `votacao_resumo` - Resumo estatístico da votação
+
+### 🏛️ Comissões (5 ferramentas)
+
+Informações sobre comissões parlamentares:
+
+- `comissoes_listar` - Lista todas as comissões (permanentes e temporárias)
+- `comissao_detalhes` - Detalhes de comissão específica
+- `comissao_membros` - Composição da comissão
+- `comissao_reunioes` - Calendário de reuniões
+- `comissao_materias` - Propostas em análise
+
+### 🎭 Partidos (5 ferramentas)
+
+Dados sobre partidos e blocos parlamentares:
+
+- `partidos_listar` - Lista partidos e blocos
+- `partido_detalhes` - Informações do partido
+- `partido_membros` - Senadores filiados
+- `partido_liderancas` - Lideranças partidárias
+- `blocos_listar` - Blocos parlamentares e coligações
+
+### 📅 Sessões Plenárias (6 ferramentas)
+
+Acompanhamento de sessões do plenário:
+
+- `sessoes_listar` - Calendário de sessões
+- `sessao_detalhes` - Detalhes de sessão específica
+- `sessao_votacoes` - Votações da sessão
+- `sessao_discursos` - Discursos proferidos
+- `sessao_ordem_dia` - Ordem do dia
+- `sessao_expediente` - Expediente da sessão
+
+---
+
+## 🌐 Modos de Implantação
+
+### 1️⃣ Modo stdio (Padrão MCP)
+
+Protocolo nativo para assistentes de IA:
+
 ```bash
+# Via npx
+npx @aredes.me/mcp-senado
+
+# Via instalação global
+mcp-senado
+
+# Via código fonte
+npm run dev
+```
+
+**Uso**: Integração direta com Claude Desktop, Cursor, Windsurf, Continue.dev
+
+### 2️⃣ Modo HTTP/REST API
+
+Servidor HTTP standalone para aplicações web:
+
+```bash
+# Desenvolvimento
 npm run dev:http
-```
 
-**Production Mode:**
-```bash
-npm run build
+# Produção
 npm run start:http
+
+# Porta personalizada
+HTTP_PORT=8080 npm run start:http
 ```
 
-**Using npx:**
+**Endpoints disponíveis:**
+
 ```bash
-npx @aredes.me/mcp-senado-http
+GET  /health                    # Health check
+GET  /info                      # Informações do servidor
+GET  /api/tools                 # Lista todas as ferramentas
+GET  /api/tools/:name           # Detalhes de ferramenta
+POST /api/tools/:name           # Executa ferramenta
+GET  /api/categories            # Lista categorias
+GET  /api/tools/category/:cat   # Ferramentas por categoria
 ```
 
-### HTTP Endpoints
+**Exemplo de uso:**
 
-Base URL: `http://localhost:3000`
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check and server status |
-| `/api/tools` | GET | List all available tools |
-| `/api/tools/:name` | GET | Get specific tool details |
-| `/api/tools/:name` | POST | Invoke a tool |
-| `/api/tools/category/:category` | GET | List tools by category |
-| `/api/categories` | GET | List all categories |
-
-### Example Requests
-
-**Health Check:**
 ```bash
+# Listar senadores de SP
+curl -X POST http://localhost:3000/api/tools/senadores_listar \
+  -H "Content-Type: application/json" \
+  -d '{"uf": "SP"}'
+
+# Health check
 curl http://localhost:3000/health
 ```
 
-**List All Tools:**
+**Autenticação (opcional):**
+
 ```bash
-curl http://localhost:3000/api/tools
+HTTP_AUTH_ENABLED=true \
+HTTP_AUTH_TOKEN=seu-token-secreto \
+npm run start:http
+
+# Requisição autenticada
+curl -H "Authorization: Bearer seu-token-secreto" \
+  http://localhost:3000/api/tools
 ```
 
-**Get Tool Details:**
-```bash
-curl http://localhost:3000/api/tools/ufs_listar
-```
+### 3️⃣ Modo Docker
 
-**Invoke a Tool:**
-```bash
-curl -X POST http://localhost:3000/api/tools/senadores_listar \
-  -H "Content-Type: application/json" \
-  -d '{"uf": "SP"}'
-```
+Deploy containerizado com isolamento completo:
 
-**With Authentication:**
-```bash
-curl -X POST http://localhost:3000/api/tools/senadores_listar \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your-token-here" \
-  -d '{"uf": "SP"}'
-```
-
-### HTTP Configuration
-
-Set these environment variables in your `.env` file:
+**Docker Compose (Recomendado):**
 
 ```bash
-# HTTP Server
-HTTP_PORT=3000                    # Server port
-HTTP_HOST=0.0.0.0                 # Bind address
-HTTP_CORS_ORIGIN=*                # CORS allowed origin
-HTTP_AUTH_ENABLED=false           # Enable bearer token auth
-HTTP_AUTH_TOKEN=                  # Authentication token
-HTTP_REQUEST_TIMEOUT=30000        # Request timeout (ms)
-```
-
-## 🐳 Docker Deployment
-
-Run the server in a Docker container for isolated, portable deployment:
-
-### Quick Start with Docker Compose
-
-**1. Clone and configure:**
-```bash
-git clone https://github.com/cristianoaredes/mcp-senado.git
-cd mcp-senado
-cp .env.example .env  # Edit .env as needed
-```
-
-**2. Run with Docker Compose:**
-```bash
+# Iniciar
 docker-compose up -d
-```
 
-**3. Check status:**
-```bash
-docker-compose ps
+# Ver logs
 docker-compose logs -f
-curl http://localhost:3000/health
-```
 
-**4. Stop the service:**
-```bash
+# Parar
 docker-compose down
 ```
 
-### Manual Docker Build
+**Docker manual:**
 
-**Build the image:**
 ```bash
-docker build -t mcp-senado:latest .
-```
+# Build
+docker build -t mcp-senado .
 
-**Run HTTP server:**
-```bash
+# Run
 docker run -d \
   --name mcp-senado \
   -p 3000:3000 \
   -e HTTP_PORT=3000 \
   -e MCP_LOG_LEVEL=info \
   mcp-senado:latest
-```
 
-**Run with custom environment:**
-```bash
-docker run -d \
-  --name mcp-senado \
-  -p 8080:8080 \
-  --env-file .env \
-  -e HTTP_PORT=8080 \
-  -e HTTP_AUTH_ENABLED=true \
-  -e HTTP_AUTH_TOKEN=your-secret-token \
-  mcp-senado:latest
-```
-
-**View logs:**
-```bash
+# Logs
 docker logs -f mcp-senado
 ```
 
-**Stop and remove:**
-```bash
-docker stop mcp-senado
-docker rm mcp-senado
-```
+**Características:**
+- 🐳 Imagem Alpine Linux (~150MB)
+- 🔒 Execução como usuário não-root
+- 🏥 Health check integrado
+- 📊 Multi-stage build otimizado
 
-### Docker Image Details
+### 4️⃣ Cloudflare Workers (Edge Computing)
 
-- **Base image:** node:18-alpine
-- **Image size:** ~150MB (multi-stage build)
-- **User:** Non-root user (nodejs:1001)
-- **Health check:** Built-in HTTP health check on /health
-- **Security:** Runs as non-root, uses dumb-init for signal handling
+Deploy global em 300+ data centers com **Durable Objects** para estado persistente:
 
-### Environment Variables
+#### 🎯 Arquitetura com Durable Objects
 
-All configuration variables from `.env.example` can be passed to Docker:
-- API Configuration: `SENADO_API_BASE_URL`
-- HTTP Server: `HTTP_PORT`, `HTTP_HOST`, `HTTP_CORS_ORIGIN`, `HTTP_AUTH_*`
-- Cache: `MCP_CACHE_ENABLED`, `MCP_CACHE_TTL`, `MCP_CACHE_MAX_SIZE`
-- Rate Limiting: `MCP_RATE_LIMIT_*`
-- Circuit Breaker: `MCP_CIRCUIT_BREAKER_*`
-- Logging: `MCP_LOG_LEVEL`
+O MCP Senado utiliza **4 Durable Objects** para gerenciar estado distribuído:
 
-## ⚡ Cloudflare Workers Deployment
+| Durable Object | Função | Benefício |
+|---|---|---|
+| **CacheDurableObject** | Cache LRU persistente com TTL | Cache compartilhado entre todas as requisições globalmente |
+| **RateLimiterDurableObject** | Rate limiting com token bucket | Limites de taxa distribuídos e precisos |
+| **CircuitBreakerDurableObject** | Circuit breaker pattern (CLOSED/OPEN/HALF_OPEN) | Proteção contra falhas em cascata da API |
+| **MetricsDurableObject** | Métricas agregadas e analytics | Observabilidade em tempo real de todas as requisições |
 
-Deploy the server to Cloudflare Workers for global edge deployment with zero cold starts:
+**Por que Durable Objects?**
+- 🔄 **Estado persistente** entre todas as requisições Workers
+- 🌍 **Consistência global** através de todos os 300+ data centers
+- ⚡ **Performance** com cache compartilhado e circuit breaker distribuído
+- 📊 **Métricas precisas** agregadas de todas as instâncias Workers
 
-### Prerequisites
+#### 📋 Pré-requisitos
 
-1. **Install Wrangler CLI:**
+1. **Conta Cloudflare** com acesso a Durable Objects (plano Workers Paid - $5/mês)
+2. **Wrangler CLI** instalado
+
 ```bash
 npm install -g wrangler
-```
-
-2. **Authenticate with Cloudflare:**
-```bash
 wrangler login
 ```
 
-### Quick Start
+#### 🚀 Deploy Passo a Passo
 
-**1. Build the project:**
+**1. Build do projeto:**
+
 ```bash
 npm run build
 ```
 
-**2. Deploy to development:**
+Isso compila TypeScript para JavaScript e gera:
+- `build/workers/index.js` - Entry point do Worker
+- `build/durable-objects/*.js` - Código dos Durable Objects
+
+**2. Deploy inicial (development):**
+
 ```bash
 npm run deploy:workers
+# ou manualmente:
+wrangler deploy --env development
 ```
 
-**3. Deploy to staging:**
-```bash
-npm run deploy:workers:staging
-```
+**3. Deploy para produção:**
 
-**4. Deploy to production:**
 ```bash
 npm run deploy:workers:production
+# ou manualmente:
+wrangler deploy --env production
 ```
 
-### Local Development
-
-Test the Workers adapter locally with Wrangler:
+**4. Verificar deployment:**
 
 ```bash
-npm run dev:workers
+# Ver status dos Durable Objects
+wrangler deployments list
+
+# Logs em tempo real
+wrangler tail
 ```
 
-This starts a local server at `http://localhost:8787` with hot reload.
-
-### Configuration
-
-Configure your Workers deployment by editing `wrangler.toml`:
+#### 🔧 Configuração (`wrangler.toml`)
 
 ```toml
 name = "mcp-senado"
 main = "build/workers/index.js"
 compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
 
+# Durable Objects Bindings
+[[durable_objects.bindings]]
+name = "CACHE"
+class_name = "CacheDurableObject"
+script_name = "mcp-senado"
+
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiterDurableObject"
+script_name = "mcp-senado"
+
+[[durable_objects.bindings]]
+name = "CIRCUIT_BREAKER"
+class_name = "CircuitBreakerDurableObject"
+script_name = "mcp-senado"
+
+[[durable_objects.bindings]]
+name = "METRICS"
+class_name = "MetricsDurableObject"
+script_name = "mcp-senado"
+
+# Migrations (necessário para criar DOs)
+[[migrations]]
+tag = "v1"
+new_classes = ["CacheDurableObject", "RateLimiterDurableObject", "CircuitBreakerDurableObject", "MetricsDurableObject"]
+
+# Variáveis de ambiente
 [vars]
-SENADO_API_BASE_URL = "https://legis.senado.leg.br/dadosabertos/"
-WORKERS_CORS_ORIGIN = "*"
+MCP_SERVER_NAME = "mcp-senado"
+MCP_SERVER_VERSION = "1.0.0"
+SENADO_API_BASE_URL = "https://legis.senado.leg.br/dadosabertos"
+SENADO_API_TIMEOUT = "30000"
+
+# Cache
 MCP_CACHE_ENABLED = "true"
-# ... more configuration
-```
-
-### Environment-Specific Configuration
-
-The project supports three environments:
-- **Development** (default): For local testing with `wrangler dev`
-- **Staging**: Pre-production environment at `mcp-senado-staging.workers.dev`
-- **Production**: Production environment at `mcp-senado-production.workers.dev`
-
-### Environment Variables
-
-All configuration can be set via environment variables in `wrangler.toml`:
-
-- **API Configuration:**
-  - `SENADO_API_BASE_URL`: Brazilian Senate API base URL
-
-- **Workers Configuration:**
-  - `WORKERS_CORS_ORIGIN`: CORS allowed origins (default: "*")
-  - `WORKERS_AUTH_ENABLED`: Enable API authentication (default: "false")
-  - `WORKERS_AUTH_TOKEN`: API authentication token
-
-- **Cache Configuration:**
-  - `MCP_CACHE_ENABLED`: Enable in-memory cache (default: "true")
-  - `MCP_CACHE_TTL`: Cache TTL in seconds (default: "300")
-  - `MCP_CACHE_MAX_SIZE`: Maximum cache entries (default: "1000")
-
-- **Rate Limiting:**
-  - `MCP_RATE_LIMIT_ENABLED`: Enable rate limiting (default: "true")
-  - `MCP_RATE_LIMIT_MAX_REQUESTS`: Max requests per window (default: "30")
-  - `MCP_RATE_LIMIT_WINDOW_MS`: Time window in ms (default: "60000")
-
-- **Circuit Breaker:**
-  - `MCP_CIRCUIT_BREAKER_ENABLED`: Enable circuit breaker (default: "true")
-  - `MCP_CIRCUIT_BREAKER_THRESHOLD`: Failure threshold (default: "5")
-  - `MCP_CIRCUIT_BREAKER_TIMEOUT`: Timeout in ms (default: "60000")
-
-- **HTTP Client:**
-  - `MCP_HTTP_TIMEOUT`: Request timeout in ms (default: "30000")
-  - `MCP_HTTP_RETRY_ATTEMPTS`: Max retry attempts (default: "3")
-  - `MCP_HTTP_RETRY_DELAY`: Retry delay in ms (default: "1000")
-
-- **Logging:**
-  - `MCP_LOG_LEVEL`: Log level (default: "info")
-  - `MCP_LOG_MASK_PII`: Mask personally identifiable information (default: "false")
-
-### API Endpoints
-
-Once deployed, your Workers instance exposes the following REST endpoints:
-
-- `GET /health` - Health check endpoint
-- `GET /info` - Server information (version, tool count, etc.)
-- `GET /api/tools` - List all available tools
-- `GET /api/tools/:name` - Get specific tool details
-- `POST /api/tools/:name` - Invoke a tool with parameters
-- `GET /api/categories` - List all tool categories
-- `GET /api/tools/category/:category` - Get tools by category
-
-### Example Usage
-
-**Invoke a tool via REST API:**
-```bash
-curl -X POST https://your-worker.workers.dev/api/tools/ufs_listar \
-  -H "Content-Type: application/json" \
-  -d '{}'
-```
-
-**List all tools:**
-```bash
-curl https://your-worker.workers.dev/api/tools
-```
-
-**Get tool by category:**
-```bash
-curl https://your-worker.workers.dev/api/tools/category/senator
-```
-
-### Benefits of Workers Deployment
-
-- **Global Edge Network**: Deployed to 300+ Cloudflare data centers worldwide
-- **Zero Cold Starts**: Workers start instantly with no initialization delay
-- **Automatic Scaling**: Handles traffic spikes automatically
-- **Low Latency**: Responses from the nearest data center to users
-- **Cost-Effective**: Free tier includes 100,000 requests/day
-- **Built-in DDoS Protection**: Cloudflare's security by default
-
-## 🛠️ Available Tools
-
-### Reference Data (10 tools)
-- List legislatures, proposal types, and statuses
-- Access Brazilian states and committee types
-- List author types, session types, and voting types
-- Get document types and subject classifications
-
-### Senators (13 tools)
-- List senators with filters (name, party, state, legislature)
-- Get detailed senator information and biography
-- Access voting history and authored proposals
-- View committee memberships and leadership positions
-- Search speeches and legislative activities
-
-### Legislative Proposals (12 tools)
-- Search proposals with advanced filters
-- Get detailed proposal information and full text
-- Access voting history and processing status
-- View proposal amendments and related documents
-- List authors and co-authors
-
-### Voting (5 tools)
-- List voting sessions with filters
-- Get detailed voting results
-- Access individual senator votes by voting session
-- View voting statistics and party orientations
-
-### Committees (5 tools)
-- List all committees (permanent and temporary)
-- Get committee details, members, and composition
-- Access meeting schedules and agendas
-- View proposals under committee review
-
-### Parties (5 tools)
-- List all political parties and parliamentary blocs
-- Get party details and current senators
-- Access party leadership information
-- View bloc compositions and coalitions
-
-### Sessions & Plenary (6 tools)
-- List plenary sessions with filters
-- Get session details and schedules
-- Access session votings and results
-- View session speeches and transcripts
-- Get plenary results by month
-
-## 📖 Usage Examples
-
-```
-"Show me all senators from São Paulo"
-"What is the voting record of Senator X?"
-"Find all bills about education from 2024"
-"What is the current status of PLS 123/2024?"
-"List all permanent committees"
-"How many senators does each party have?"
-```
-
-## ⚙️ Configuration
-
-Create a `.env` file or set environment variables:
-
-```bash
-# API Configuration
-SENADO_API_BASE_URL=https://legis.senado.leg.br/dadosabertos/
-
-# Cache Configuration
-MCP_CACHE_ENABLED=true
-MCP_CACHE_TTL=300
+MCP_CACHE_TTL = "300000"  # 5 minutos
 
 # Rate Limiting
-MCP_RATE_LIMIT_ENABLED=true
-MCP_RATE_LIMIT_MAX_REQUESTS=30
-MCP_RATE_LIMIT_WINDOW_MS=60000
+MCP_RATE_LIMIT_ENABLED = "true"
+MCP_RATE_LIMIT_MAX_TOKENS = "30"
+MCP_RATE_LIMIT_REFILL_RATE = "0.5"  # 0.5 tokens/segundo
+
+# Circuit Breaker
+MCP_CIRCUIT_BREAKER_ENABLED = "true"
+MCP_CIRCUIT_BREAKER_THRESHOLD = "5"   # Falhas para abrir
+MCP_CIRCUIT_BREAKER_TIMEOUT = "60000" # 1 minuto
 
 # Logging
-MCP_LOG_LEVEL=info
+MCP_LOG_LEVEL = "INFO"
+
+# Ambientes
+[env.development]
+name = "mcp-senado-dev"
+vars = { ENVIRONMENT = "development" }
+
+[env.production]
+name = "mcp-senado-prod"
+vars = { ENVIRONMENT = "production" }
+# Descomentar e configurar sua rota:
+# route = "mcp-senado.seudominio.com/*"
 ```
 
-## 🏗️ Architecture
+#### 🧪 Desenvolvimento Local
 
-```
-AI Assistants (Claude, Cursor, Windsurf, Continue.dev)
-    ↓ MCP Protocol (stdio/HTTP)
-Adapters Layer (CLI, HTTP Server, Cloudflare Workers)
-    ↓
-Core Layer (MCP Server, Tool Registry, Validation)
-    ↓
-Tools Layer (Senator, Proposal, Voting, Committee, Party, Reference)
-    ↓
-Infrastructure Layer (HTTP Client, Cache, Circuit Breaker, Rate Limiter)
-    ↓ HTTPS
-Senado Federal Open Data API
+```bash
+# Iniciar servidor de desenvolvimento com Durable Objects
+npm run dev:workers
+
+# Servidor estará disponível em:
+# http://localhost:8787
 ```
 
-## 🤝 Contributing
+**Testando endpoints:**
 
-Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+```bash
+# Health check
+curl http://localhost:8787/health
 
-## 📄 License
+# Listar ferramentas MCP
+curl http://localhost:8787/v1/tools/list
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+# Invocar ferramenta
+curl -X POST http://localhost:8787/v1/tools/invoke \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "get_senator",
+    "arguments": {"codigo": "5012"}
+  }'
 
-## 🔗 Related Projects
+# Métricas (do MetricsDurableObject)
+curl http://localhost:8787/v1/metrics/global
+```
 
-- [mcp-camara](https://github.com/cristianoaredes/mcp-camara) - MCP server for Brazilian Chamber of Deputies
-- [mcp-dadosbr](https://github.com/cristianoaredes/mcp-dadosbr) - MCP server for Brazilian public data
+#### 📊 Monitoramento de Durable Objects
 
-## 📚 Documentation
+**1. Métricas globais:**
+```bash
+curl https://mcp-senado-prod.seu-worker.workers.dev/v1/metrics/global
+```
 
-- [Configuration Guide](docs/CONFIGURATION.md)
-- [Usage Examples](docs/USAGE_EXAMPLES.md)
-- [API Reference](docs/API.md)
-- [Deployment Guide](docs/DEPLOYMENT.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
+**2. Estatísticas de cache:**
+```bash
+curl https://mcp-senado-prod.seu-worker.workers.dev/v1/cache/stats
+```
 
-## 🙏 Acknowledgments
+**3. Status do circuit breaker:**
+```bash
+curl https://mcp-senado-prod.seu-worker.workers.dev/v1/circuit-breaker/stats
+```
 
-- [Senado Federal](https://www12.senado.leg.br/) for providing the Open Data API
-- [Anthropic](https://www.anthropic.com/) for the Model Context Protocol
-- Brazilian open data community
+**4. Rate limiter status:**
+```bash
+curl https://mcp-senado-prod.seu-worker.workers.dev/v1/rate-limiter/stats
+```
 
-## 📧 Contact
+#### 🎯 Boas Práticas
 
-**Maintainer**: Cristiano Aredes  
-**Email**: cristiano@aredes.me  
-**LinkedIn**: [cristianoaredes](https://www.linkedin.com/in/cristianoaredes/)
+1. **Sempre faça build antes de deploy:**
+   ```bash
+   npm run build && npm run deploy:workers
+   ```
+
+2. **Teste localmente antes de produção:**
+   ```bash
+   npm run dev:workers
+   # Testar thoroughly
+   npm run deploy:workers  # Deploy em dev primeiro
+   ```
+
+3. **Monitor logs em produção:**
+   ```bash
+   wrangler tail --env production
+   ```
+
+4. **Use variáveis de ambiente corretas para cada ambiente:**
+   - Development: mais logs, cache TTL menor
+   - Production: logs INFO/WARN, cache TTL otimizado
+
+#### 💰 Custos
+
+**Cloudflare Workers + Durable Objects:**
+
+| Recurso | Free Tier | Paid Plan ($5/mês) |
+|---|---|---|
+| Workers Requests | 100.000/dia | 10M incluídos |
+| CPU Time | 10ms/req | 50ms/req |
+| **Durable Objects** | ❌ Não disponível | ✅ Incluído |
+| DO Requests | - | 1M incluídos |
+| DO Storage | - | 1GB incluído |
+
+**Estimativa de custos para 1M requisições/mês:**
+- Workers: ~$0-5 (dependendo do uso)
+- Durable Objects: ~$0-5 (storage + requests)
+- **Total: ~$5-10/mês** para tráfego moderado
+
+#### 🔐 Segurança
+
+**Secrets (valores sensíveis):**
+
+```bash
+# Definir API key (opcional)
+wrangler secret put MCP_API_KEY --env production
+
+# Definir tokens de autenticação
+wrangler secret put WORKERS_AUTH_TOKEN --env production
+```
+
+**Habilitar autenticação no Worker:**
+
+```toml
+[env.production.vars]
+WORKERS_AUTH_ENABLED = "true"
+```
+
+Então use o header `Authorization` nas requisições:
+```bash
+curl -H "Authorization: Bearer seu-token-aqui" \
+  https://mcp-senado-prod.seu-worker.workers.dev/v1/tools/list
+```
+
+#### ✨ Benefícios do Deploy com Durable Objects
+
+- ⚡ **Zero cold starts** - Workers sempre quentes
+- 🌍 **Latência ultra-baixa** - 300+ data centers globalmente
+- 🔄 **Cache persistente** - Compartilhado entre todas as requisições
+- 🛡️ **Circuit breaker distribuído** - Proteção contra falhas da API do Senado
+- 📊 **Métricas precisas** - Analytics em tempo real agregadas
+- 📈 **Escalabilidade automática** - De 0 a milhões de requisições
+- 💰 **Custo otimizado** - Pague apenas pelo que usar
+- 🔐 **DDoS protection** - Incluído automaticamente
+- 🚀 **Deploy em segundos** - CI/CD integrado
+- 🧪 **Desenvolvimento local fácil** - Emulador completo de DOs
 
 ---
 
-Made with ❤️ for the Brazilian open data community
+## ⚙️ Configuração
+
+### Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto:
+
+```bash
+# API do Senado Federal
+SENADO_API_BASE_URL=https://legis.senado.leg.br/dadosabertos/
+MCP_HTTP_TIMEOUT=30000
+MCP_HTTP_RETRY_ATTEMPTS=3
+MCP_HTTP_RETRY_DELAY=1000
+
+# Servidor HTTP (opcional)
+HTTP_PORT=3000
+HTTP_HOST=0.0.0.0
+HTTP_CORS_ORIGIN=*
+HTTP_AUTH_ENABLED=false
+HTTP_AUTH_TOKEN=
+
+# Cache
+MCP_CACHE_ENABLED=true
+MCP_CACHE_TTL=300
+MCP_CACHE_MAX_SIZE=1000
+MCP_CACHE_CLEANUP_INTERVAL=60000
+
+# Rate Limiting
+MCP_RATE_LIMIT_ENABLED=true
+MCP_RATE_LIMIT_TOKENS=30
+MCP_RATE_LIMIT_INTERVAL=60000
+MCP_RATE_LIMIT_REFILL_RATE=0.5
+
+# Circuit Breaker
+MCP_CIRCUIT_BREAKER_ENABLED=true
+MCP_CIRCUIT_BREAKER_FAILURE_THRESHOLD=5
+MCP_CIRCUIT_BREAKER_SUCCESS_THRESHOLD=2
+MCP_CIRCUIT_BREAKER_TIMEOUT=60000
+
+# Logging
+MCP_LOG_LEVEL=info  # debug | info | warn | error
+MCP_LOG_FORMAT=json  # json | text
+MCP_LOG_MASK_PII=false
+
+# Ambiente
+NODE_ENV=production  # development | production | test
+```
+
+### Configuração Avançada
+
+**Performance:**
+
+```bash
+# Cache agressivo (ideal para dados que mudam pouco)
+MCP_CACHE_TTL=3600          # 1 hora
+MCP_CACHE_MAX_SIZE=5000     # Mais entradas
+
+# Rate limiting relaxado (para uso interno)
+MCP_RATE_LIMIT_TOKENS=100
+MCP_RATE_LIMIT_INTERVAL=60000
+```
+
+**Segurança:**
+
+```bash
+# Produção segura
+HTTP_AUTH_ENABLED=true
+HTTP_AUTH_TOKEN=token-forte-aqui
+HTTP_CORS_ORIGIN=https://meu-dominio.com
+MCP_LOG_MASK_PII=true
+```
+
+**Debug:**
+
+```bash
+# Modo de desenvolvimento
+NODE_ENV=development
+MCP_LOG_LEVEL=debug
+MCP_LOG_FORMAT=text
+MCP_CACHE_ENABLED=false  # Facilita debug
+```
+
+---
+
+## 💡 Exemplos de Uso
+
+### Exemplo 1: Consultar Senadores
+
+**Prompt para IA:**
+```
+"Liste todos os senadores do estado de São Paulo na legislatura atual"
+```
+
+**Resposta esperada:**
+- Nome completo de cada senador
+- Partido político
+- Telefones e emails de contato
+- Período do mandato
+
+### Exemplo 2: Pesquisar Propostas
+
+**Prompt para IA:**
+```
+"Busque propostas legislativas sobre educação que estão tramitando"
+```
+
+**Resultado:**
+- Lista de PLs (Projetos de Lei)
+- Ementa e descrição
+- Status de tramitação
+- Autores
+
+### Exemplo 3: Acompanhar Votações
+
+**Prompt para IA:**
+```
+"Mostre as votações do Senado nos últimos 7 dias e como cada senador votou"
+```
+
+**Informações retornadas:**
+- Data e hora da votação
+- Matéria votada
+- Resultado (aprovado/rejeitado)
+- Votos individuais por senador
+- Orientação das bancadas
+
+### Exemplo 4: Análise de Comissões
+
+**Prompt para IA:**
+```
+"Quais comissões permanentes estão ativas e quem são os presidentes?"
+```
+
+**Dados fornecidos:**
+- Nome da comissão
+- Sigla
+- Presidente atual
+- Vice-presidente
+- Número de membros
+
+### Exemplo 5: Uso via API HTTP
+
+```bash
+# Consultar votações recentes
+curl -X POST http://localhost:3000/api/tools/votacoes_listar \
+  -H "Content-Type: application/json" \
+  -d '{
+    "dataInicio": "2024-01-01",
+    "dataFim": "2024-12-31",
+    "pagina": 1,
+    "itensPorPagina": 10
+  }'
+
+# Detalhes de um senador
+curl -X POST http://localhost:3000/api/tools/senador_detalhes \
+  -H "Content-Type: application/json" \
+  -d '{"codigo": 5012}'
+
+# Propostas por tipo
+curl -X POST http://localhost:3000/api/tools/materias_pesquisar \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tipo": "PL",
+    "ano": "2024",
+    "tramitando": true
+  }'
+```
+
+---
+
+## 📚 Documentação
+
+### Documentação Oficial
+
+- **[README em Inglês](./README.en.md)** - Documentação em inglês
+- **[Guia de Contribuição](./CONTRIBUTING.md)** - Como contribuir com o projeto
+- **[Código de Conduta](./CODE_OF_CONDUCT.md)** - Normas da comunidade
+- **[Segurança](./SECURITY.md)** - Política de segurança
+- **[Changelog](./CHANGELOG.md)** - Histórico de versões
+- **[Roadmap](./ROADMAP.md)** - Planejamento futuro
+
+### Recursos Externos
+
+- **[API Dados Abertos do Senado](https://legis.senado.leg.br/dadosabertos/)** - Documentação oficial da API
+- **[Model Context Protocol](https://modelcontextprotocol.io/)** - Especificação MCP
+- **[TypeScript](https://www.typescriptlang.org/)** - Documentação TypeScript
+- **[Vitest](https://vitest.dev/)** - Framework de testes
+
+### Suporte e Comunidade
+
+- 🐛 **Issues**: [GitHub Issues](https://github.com/cristianoaredes/mcp-senado/issues)
+- 💬 **Discussões**: [GitHub Discussions](https://github.com/cristianoaredes/mcp-senado/discussions)
+- 📧 **Email**: Contato com mantenedores
+- 🌟 **Star no GitHub**: Mostre seu apoio!
+
+---
+
+## 🤝 Contribuindo
+
+Contribuições são muito bem-vindas! Este é um projeto open-source mantido pela comunidade.
+
+### Como Contribuir
+
+1. **Fork** o repositório
+2. Crie uma **branch** para sua feature (`git checkout -b feature/minha-feature`)
+3. **Commit** suas mudanças (`git commit -m 'feat: adiciona nova feature'`)
+4. **Push** para a branch (`git push origin feature/minha-feature`)
+5. Abra um **Pull Request**
+
+### Diretrizes
+
+- ✅ Escreva testes para novas funcionalidades
+- ✅ Mantenha cobertura de testes > 70%
+- ✅ Siga o style guide TypeScript
+- ✅ Documente alterações no código
+- ✅ Use commits semânticos (conventional commits)
+- ✅ Atualize documentação quando necessário
+
+### Áreas que Precisam de Ajuda
+
+- 📝 Documentação de ferramentas específicas
+- 🧪 Testes adicionais (E2E, integração)
+- 🌍 Traduções (inglês, espanhol)
+- 🎨 Exemplos de uso
+- 🐛 Correção de bugs
+- ⚡ Otimizações de performance
+
+Veja [CONTRIBUTING.md](./CONTRIBUTING.md) para guia completo.
+
+---
+
+## 🏗️ Arquitetura
+
+### Estrutura do Projeto
+
+```
+mcp-senado/
+├── lib/                      # Código fonte
+│   ├── adapters/            # Adaptadores de transporte
+│   │   ├── http.ts          # Adaptador HTTP/REST
+│   │   └── workers.ts       # Adaptador Cloudflare Workers
+│   ├── bin/                 # Entry points CLI
+│   │   ├── mcp-senado.ts        # stdio (MCP)
+│   │   └── mcp-senado-http.ts   # HTTP server
+│   ├── config/              # Configuração
+│   ├── core/                # Lógica core MCP
+│   │   ├── mcp-server.ts    # Servidor MCP principal
+│   │   ├── tools.ts         # Registry de ferramentas
+│   │   ├── validation.ts    # Validação com Zod
+│   │   └── errors.ts        # Tratamento de erros
+│   ├── infrastructure/      # Infraestrutura
+│   │   ├── cache.ts         # Cache LRU
+│   │   ├── circuit-breaker.ts
+│   │   ├── http-client.ts   # Cliente HTTP
+│   │   ├── logger.ts        # Logging estruturado
+│   │   └── rate-limiter.ts  # Rate limiting
+│   ├── tools/               # Implementação das ferramentas
+│   │   ├── reference-tools.ts
+│   │   ├── senator-tools.ts
+│   │   ├── proposal-tools.ts
+│   │   ├── voting-tools.ts
+│   │   ├── committee-tools.ts
+│   │   ├── party-tools.ts
+│   │   └── session-tools.ts
+│   ├── types/               # Definições TypeScript
+│   └── workers/             # Cloudflare Workers
+├── test/                     # Testes
+│   ├── core/                # Testes unitários core
+│   ├── e2e/                 # Testes E2E
+│   ├── infrastructure/      # Testes infra
+│   └── integration/         # Testes integração
+├── .github/workflows/       # CI/CD
+└── docker/                   # Docker configs
+```
+
+### Stack Tecnológica
+
+- **Runtime**: Node.js 18+
+- **Linguagem**: TypeScript 5.7+ (strict mode)
+- **Framework MCP**: @modelcontextprotocol/sdk
+- **HTTP Server**: Express 5.x
+- **Validação**: Zod
+- **Testes**: Vitest (211 testes, 73% coverage)
+- **Build**: TypeScript Compiler
+- **Deploy**: Docker, Cloudflare Workers
+- **CI/CD**: GitHub Actions
+
+---
+
+## 📈 Status do Projeto
+
+### Métricas
+
+- ✅ **211 testes** passando (2 skipped)
+- ✅ **73% cobertura** de código
+- ✅ **56 ferramentas** implementadas
+- ✅ **7 categorias** de dados
+- ✅ **4 modos** de deployment
+- ✅ **0 vulnerabilidades** de segurança
+
+### Versão Atual
+
+**v0.1.0** - Primeira versão pública
+- Core MCP server completo
+- 56 ferramentas funcionais
+- 4 adaptadores de transporte
+- Documentação completa
+- CI/CD configurado
+
+### Próximos Passos
+
+- [ ] Publicação no NPM oficial
+- [ ] Suporte a webhooks do Senado
+- [ ] Interface web de demonstração
+- [ ] Expansão para Câmara dos Deputados
+- [ ] SDK JavaScript/TypeScript
+- [ ] Integração com mais assistentes de IA
+
+Veja [ROADMAP.md](./ROADMAP.md) para planejamento completo.
+
+---
+
+## 📄 Licença
+
+Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](./LICENSE) para detalhes.
+
+### Termos
+
+- ✅ Uso comercial permitido
+- ✅ Modificação permitida
+- ✅ Distribuição permitida
+- ✅ Uso privado permitido
+- ⚠️ Sem garantias
+- ⚠️ Limitação de responsabilidade
+
+---
+
+## 🙏 Agradecimentos
+
+- **Senado Federal** - Pela API de Dados Abertos
+- **Anthropic** - Pelo Model Context Protocol
+- **Comunidade Open Source** - Por tornar isso possível
+- **Contribuidores** - Obrigado por cada PR e issue!
+
+---
+
+## 📞 Contato
+
+- **GitHub**: [@cristianoaredes](https://github.com/cristianoaredes)
+- **Issues**: [Reportar bug ou sugerir feature](https://github.com/cristianoaredes/mcp-senado/issues)
+- **Discussions**: [Fórum da comunidade](https://github.com/cristianoaredes/mcp-senado/discussions)
+
+---
+
+<p align="center">
+  Feito com ❤️ para a transparência e democracia brasileira<br>
+  <sub>Dados abertos • Código aberto • Democracia aberta</sub>
+</p>
+
+<p align="center">
+  <a href="#mcp-senado-federal-">⬆️ Voltar ao topo</a>
+</p>
