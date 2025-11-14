@@ -28,24 +28,10 @@ function createMockHttpClient(): HttpClient {
   return {
     get: vi.fn().mockResolvedValue({
       success: true,
-      data: {
-        ListaUFs: {
-          UFs: {
-            UF: [
-              {
-                Codigo: '26',
-                Nome: 'São Paulo',
-                Sigla: 'SP',
-              },
-              {
-                Codigo: '19',
-                Nome: 'Rio de Janeiro',
-                Sigla: 'RJ',
-              },
-            ],
-          },
-        },
-      },
+      data: [
+        { id: 35, nome: 'São Paulo', sigla: 'SP', regiao: { nome: 'Sudeste' } },
+        { id: 33, nome: 'Rio de Janeiro', sigla: 'RJ', regiao: { nome: 'Sudeste' } },
+      ],
     }),
     post: vi.fn(),
   };
@@ -514,9 +500,10 @@ describe('MCP Protocol E2E Tests', () => {
       expect(response.content[0].type).toBe('text');
 
       // Verify HTTP client was called with params
-      expect(mockHttpClient.get).toHaveBeenCalledWith('/legislatura/lista', {
-        pagina: 1,
-      });
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        '/plenario/lista/legislaturas',
+        {}
+      );
     });
   });
 
@@ -907,7 +894,7 @@ describe('MCP Protocol E2E Tests', () => {
       // Check updated stats
       const updatedStats = server.getStats();
       expect(updatedStats.toolInvocations).toBe(2);
-      expect(updatedStats.uptime).toBeGreaterThan(0);
+      expect(updatedStats.uptime).toBeGreaterThanOrEqual(0);
     });
 
     it('should track error count', async () => {

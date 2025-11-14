@@ -28,7 +28,8 @@
     "test:coverage": "vitest run --coverage",
     "lint": "tsc --noEmit",
     "clean": "rm -rf build",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build",
+    "smoke": "tsx scripts/smoke-test.ts"
   },
   "keywords": [
     "mcp",
@@ -67,6 +68,7 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
+    "@genkit-ai/mcp": "^1.23.0",
     "@modelcontextprotocol/sdk": "^1.0.4",
     "dotenv": "^16.4.5",
     "express": "^5.1.0",

@@ -270,7 +270,11 @@ export class SenadoHttpClient implements HttpClient {
       ? endpoint.slice(1)
       : endpoint;
 
-    const url = new URL(cleanEndpoint, this.config.baseUrl);
+    const baseUrl = this.config.baseUrl.endsWith('/')
+      ? this.config.baseUrl
+      : `${this.config.baseUrl}/`;
+
+    const url = new URL(cleanEndpoint, baseUrl);
 
     // Add query parameters
     if (params) {

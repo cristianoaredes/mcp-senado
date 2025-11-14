@@ -72,48 +72,28 @@ describe('Tool Execution Integration Tests', () => {
 
   describe('List States Tool (ufs_listar)', () => {
     it('should successfully list Brazilian states', async () => {
-      // Mock API response
       const mockApiResponse = {
-        data: {
-          ListaUFs: {
-            UFs: {
-              UF: [
-                {
-                  Codigo: '1',
-                  Sigla: 'SP',
-                  Nome: 'São Paulo',
-                },
-                {
-                  Codigo: '2',
-                  Sigla: 'RJ',
-                  Nome: 'Rio de Janeiro',
-                },
-                {
-                  Codigo: '3',
-                  Sigla: 'MG',
-                  Nome: 'Minas Gerais',
-                },
-              ],
-            },
-          },
-        },
+        data: [
+          { id: 35, sigla: 'SP', nome: 'São Paulo', regiao: { nome: 'Sudeste' } },
+          { id: 33, sigla: 'RJ', nome: 'Rio de Janeiro', regiao: { nome: 'Sudeste' } },
+          { id: 31, sigla: 'MG', nome: 'Minas Gerais', regiao: { nome: 'Sudeste' } },
+        ],
       };
 
-      vi.mocked(mockHttpClient.get).mockResolvedValue(mockApiResponse);
+      vi.mocked(mockHttpClient.get).mockResolvedValue(mockApiResponse as any);
 
-      // Execute tool
       const result = await registry.invoke('ufs_listar', {}, mockContext);
 
-      // Verify HTTP client was called correctly
-      expect(mockHttpClient.get).toHaveBeenCalledWith('/uf/lista', {});
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        'https://servicodados.ibge.gov.br/api/v1/localidades/estados',
+        {}
+      );
 
-      // Verify result structure
       expect(result.content).toBeDefined();
-      expect(result.content[0].type).toBe('text');
-      expect(result.content[0].text).toContain('São Paulo');
-      expect(result.content[0].text).toContain('Rio de Janeiro');
+      expect(result.content![0].type).toBe('text');
+      expect(result.content![0].text).toContain('São Paulo');
+      expect(result.content![0].text).toContain('Rio de Janeiro');
 
-      // Verify logging
       expect(mockLogger.debug).toHaveBeenCalledWith(
         'Listing states',
         expect.objectContaining({ params: {} })
@@ -168,10 +148,10 @@ describe('Tool Execution Integration Tests', () => {
         mockContext
       );
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith('/legislatura/lista', {
-        pagina: 1,
-        itens: 10,
-      });
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        '/plenario/lista/legislaturas',
+        {}
+      );
 
       expect(result.content[0].text).toContain('57');
       expect(result.content[0].text).toContain('2023-02-01');
@@ -231,13 +211,7 @@ describe('Tool Execution Integration Tests', () => {
   describe('Context Integration', () => {
     it('should provide cache interface to tools', async () => {
       const mockApiResponse = {
-        data: {
-          ListaUFs: {
-            UFs: {
-              UF: [{ Codigo: '1', Sigla: 'SP', Nome: 'São Paulo' }],
-            },
-          },
-        },
+        data: [{ id: 35, sigla: 'SP', nome: 'São Paulo' }],
       };
 
       vi.mocked(mockHttpClient.get).mockResolvedValue(mockApiResponse);
@@ -254,13 +228,7 @@ describe('Tool Execution Integration Tests', () => {
 
     it('should allow tools to use cache if needed', async () => {
       const mockApiResponse = {
-        data: {
-          ListaUFs: {
-            UFs: {
-              UF: [{ Codigo: '1', Sigla: 'SP', Nome: 'São Paulo' }],
-            },
-          },
-        },
+        data: [{ id: 35, sigla: 'SP', nome: 'São Paulo' }],
       };
 
       vi.mocked(mockHttpClient.get).mockResolvedValue(mockApiResponse);
@@ -277,7 +245,7 @@ describe('Tool Execution Integration Tests', () => {
 
     it('should pass logger to tool handler', async () => {
       const mockApiResponse = {
-        data: { ListaUFs: { UFs: { UF: [] } } },
+        data: [],
       };
 
       vi.mocked(mockHttpClient.get).mockResolvedValue(mockApiResponse);
@@ -290,7 +258,7 @@ describe('Tool Execution Integration Tests', () => {
 
     it('should handle concurrent tool executions', async () => {
       const mockApiResponse = {
-        data: { ListaUFs: { UFs: { UF: [] } } },
+        data: [],
       };
 
       vi.mocked(mockHttpClient.get).mockResolvedValue(mockApiResponse);
@@ -439,7 +407,7 @@ describe('Tool Execution Integration Tests', () => {
 
     it('should handle rapid sequential requests', async () => {
       const mockApiResponse = {
-        data: { ListaUFs: { UFs: { UF: [] } } },
+        data: [],
       };
 
       vi.mocked(mockHttpClient.get).mockResolvedValue(mockApiResponse);
@@ -457,13 +425,7 @@ describe('Tool Execution Integration Tests', () => {
 
     it('should work with empty result sets', async () => {
       const emptyResponse = {
-        data: {
-          ListaUFs: {
-            UFs: {
-              UF: [],
-            },
-          },
-        },
+        data: [],
       };
 
       vi.mocked(mockHttpClient.get).mockResolvedValue(emptyResponse);
@@ -471,7 +433,7 @@ describe('Tool Execution Integration Tests', () => {
       const result = await registry.invoke('ufs_listar', {}, mockContext);
 
       expect(result.content).toBeDefined();
-      expect(result.content[0].text).toContain('[]');
+      expect(result.content![0].text).toContain('0 de 0');
     });
   });
 });

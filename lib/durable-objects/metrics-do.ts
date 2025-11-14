@@ -71,23 +71,39 @@ export class MetricsDurableObject {
 
     try {
       if (request.method === 'POST' && path === '/record') {
-        return this.handleRecord(request);
+        return await this.handleRecord(request);
       }
 
-      if (request.method === 'GET' && path === '/stats') {
+      if (request.method === 'GET' && (path === '/stats' || path === '/global')) {
         return this.handleStats(request);
       }
 
-      if (request.method === 'GET' && path === '/tool') {
-        return this.handleToolStats(request);
+      if (
+        request.method === 'GET' &&
+        (path === '/tool' || path === '/tools' || path.startsWith('/tool/'))
+      ) {
+        const pathTool = path.startsWith('/tool/')
+          ? decodeURIComponent(path.slice('/tool/'.length))
+          : undefined;
+        return this.handleToolStats(request, pathTool);
       }
 
-      if (request.method === 'GET' && path === '/category') {
-        return this.handleCategoryStats(request);
+      if (
+        request.method === 'GET' &&
+        (path === '/category' || path === '/categories' || path.startsWith('/category/'))
+      ) {
+        const pathCategory = path.startsWith('/category/')
+          ? decodeURIComponent(path.slice('/category/'.length))
+          : undefined;
+        return this.handleCategoryStats(request, pathCategory);
+      }
+
+      if (request.method === 'GET' && path === '/hourly') {
+        return this.handleHourly();
       }
 
       if (request.method === 'POST' && path === '/reset') {
-        return this.handleReset();
+        return await this.handleReset();
       }
 
       return new Response('Not Found', { status: 404 });
@@ -182,19 +198,19 @@ export class MetricsDurableObject {
       ? this.metrics.totalSuccesses / this.metrics.totalInvocations
       : 0;
 
-    // Get hourly data for last 24 hours
-    const hourlyData = Array.from(this.metrics.hourlyInvocations.entries())
-      .sort((a, b) => a[0].localeCompare(b[0]))
-      .map(([hour, count]) => ({ hour, count }));
+    const hourlyData = this.getHourlyData();
 
     return new Response(
       JSON.stringify({
         totalInvocations: this.metrics.totalInvocations,
         totalSuccesses: this.metrics.totalSuccesses,
         totalFailures: this.metrics.totalFailures,
-        successRate,
+        totalDuration: this.metrics.totalDuration,
+        averageDuration: avgDuration,
         avgDuration,
+        successRate,
         uptime,
+        startTime: this.metrics.startTime,
         totalTools: this.metrics.tools.size,
         totalCategories: this.metrics.categories.size,
         hourlyData,
@@ -203,22 +219,38 @@ export class MetricsDurableObject {
     );
   }
 
+  private handleHourly(): Response {
+    const hourly = this.getHourlyData();
+
+    return new Response(
+      JSON.stringify({ hourly }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
+    );
+  }
+
   /**
    * Get tool-specific statistics
    */
-  private handleToolStats(request: Request): Response {
+  private handleToolStats(request: Request, pathTool?: string): Response {
     const url = new URL(request.url);
-    const tool = url.searchParams.get('name');
+    const tool = pathTool ?? url.searchParams.get('name');
 
     if (!tool) {
       // Return all tools
-      const tools = Array.from(this.metrics.tools.entries()).map(([name, metrics]) => ({
-        name,
-        invocations: metrics.invocations,
-        successRate: metrics.invocations > 0 ? metrics.successes / metrics.invocations : 0,
-        avgDuration: metrics.invocations > 0 ? metrics.totalDuration / metrics.invocations : 0,
-        lastInvocation: metrics.lastInvocation,
-      }));
+      const tools = Array.from(this.metrics.tools.entries()).map(([name, metrics]) => {
+        const averageDuration = metrics.invocations > 0
+          ? metrics.totalDuration / metrics.invocations
+          : 0;
+
+        return {
+          name,
+          invocations: metrics.invocations,
+          successRate: metrics.invocations > 0 ? metrics.successes / metrics.invocations : 0,
+          avgDuration: averageDuration,
+          averageDuration,
+          lastInvocation: metrics.lastInvocation,
+        };
+      });
 
       // Sort by invocations descending
       tools.sort((a, b) => b.invocations - a.invocations);
@@ -250,6 +282,7 @@ export class MetricsDurableObject {
         ...toolMetrics,
         successRate,
         avgDuration,
+        averageDuration: avgDuration,
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
@@ -258,9 +291,9 @@ export class MetricsDurableObject {
   /**
    * Get category statistics
    */
-  private handleCategoryStats(request: Request): Response {
+  private handleCategoryStats(request: Request, pathCategory?: string): Response {
     const url = new URL(request.url);
-    const category = url.searchParams.get('name');
+    const category = pathCategory ?? url.searchParams.get('name');
 
     if (category) {
       const count = this.metrics.categories.get(category);
@@ -309,6 +342,12 @@ export class MetricsDurableObject {
       JSON.stringify({ success: true }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
+  }
+
+  private getHourlyData(): { hour: string; count: number }[] {
+    return Array.from(this.metrics.hourlyInvocations.entries())
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([hour, count]) => ({ hour, count }));
   }
 
   /**

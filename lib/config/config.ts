@@ -44,11 +44,17 @@ export function loadConfig(): MCPServerConfig {
 
     // HTTP Server
     httpPort:
-      parseInt(getEnv('MCP_HTTP_PORT') || '', 10) ||
+      parseInt(
+        getEnv('MCP_HTTP_PORT') ||
+          getEnv('HTTP_PORT') ||
+          '',
+        10
+      ) ||
       mcprcConfig?.httpPort ||
       3000,
     httpHost:
       getEnv('MCP_HTTP_HOST') ||
+      getEnv('HTTP_HOST') ||
       mcprcConfig?.httpHost ||
       '0.0.0.0',
 
@@ -152,6 +158,7 @@ export function loadConfig(): MCPServerConfig {
       true,
     corsOrigins:
       getEnv('MCP_CORS_ORIGINS') ||
+      getEnv('HTTP_CORS_ORIGIN') ||
       mcprcConfig?.corsOrigins ||
       '*',
 

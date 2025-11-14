@@ -667,6 +667,17 @@ curl -H "Authorization: Bearer seu-token-aqui" \
 
 ---
 
+### 5️⃣ Dokploy em VPS Hostinger
+
+Implantação orquestrada pelo [Dokploy](https://dokploy.com/) em um VPS Hostinger aproveitando o mesmo `Dockerfile` e variáveis de ambiente do projeto.
+
+- ✅ Ideal para fluxos de CI/CD self-hosted com pipelines Git
+- 🔒 Mantém suporte a autenticação HTTP (`HTTP_AUTH_TOKEN`) e CORS customizado
+- ⚙️ Compatível com tempo de execução Docker ou Node dentro do Dokploy
+- 📘 Guia completo em [`docs/deployment/dokploy-hostinger.md`](./docs/deployment/dokploy-hostinger.md)
+
+---
+
 ## ⚙️ Configuração
 
 ### Variáveis de Ambiente
@@ -675,10 +686,10 @@ Crie um arquivo `.env` na raiz do projeto:
 
 ```bash
 # API do Senado Federal
-SENADO_API_BASE_URL=https://legis.senado.leg.br/dadosabertos/
-MCP_HTTP_TIMEOUT=30000
-MCP_HTTP_RETRY_ATTEMPTS=3
-MCP_HTTP_RETRY_DELAY=1000
+SENADO_API_BASE_URL=https://legis.senado.leg.br/dadosabertos
+SENADO_API_TIMEOUT=30000
+SENADO_API_MAX_RETRIES=3
+SENADO_API_RETRY_DELAY=1000
 
 # Servidor HTTP (opcional)
 HTTP_PORT=3000
@@ -686,10 +697,14 @@ HTTP_HOST=0.0.0.0
 HTTP_CORS_ORIGIN=*
 HTTP_AUTH_ENABLED=false
 HTTP_AUTH_TOKEN=
+HTTP_REQUEST_TIMEOUT=30000
+
+# Transporte (stdio | http)
+MCP_TRANSPORT=http
 
 # Cache
 MCP_CACHE_ENABLED=true
-MCP_CACHE_TTL=300
+MCP_CACHE_TTL=300000
 MCP_CACHE_MAX_SIZE=1000
 MCP_CACHE_CLEANUP_INTERVAL=60000
 
@@ -697,7 +712,7 @@ MCP_CACHE_CLEANUP_INTERVAL=60000
 MCP_RATE_LIMIT_ENABLED=true
 MCP_RATE_LIMIT_TOKENS=30
 MCP_RATE_LIMIT_INTERVAL=60000
-MCP_RATE_LIMIT_REFILL_RATE=0.5
+MCP_RATE_LIMIT_REFILL_RATE=2000
 
 # Circuit Breaker
 MCP_CIRCUIT_BREAKER_ENABLED=true
@@ -708,7 +723,7 @@ MCP_CIRCUIT_BREAKER_TIMEOUT=60000
 # Logging
 MCP_LOG_LEVEL=info  # debug | info | warn | error
 MCP_LOG_FORMAT=json  # json | text
-MCP_LOG_MASK_PII=false
+MCP_LOG_MASK_PII=true
 
 # Ambiente
 NODE_ENV=production  # development | production | test
@@ -720,7 +735,7 @@ NODE_ENV=production  # development | production | test
 
 ```bash
 # Cache agressivo (ideal para dados que mudam pouco)
-MCP_CACHE_TTL=3600          # 1 hora
+MCP_CACHE_TTL=3600000       # 1 hora em ms
 MCP_CACHE_MAX_SIZE=5000     # Mais entradas
 
 # Rate limiting relaxado (para uso interno)

@@ -26,11 +26,63 @@ import {
 /**
  * List voting sessions by date
  */
+type VotingSession = Record<string, unknown>;
+
+const asRecord = (value: unknown): Record<string, unknown> | undefined =>
+  typeof value === 'object' && value !== null ? value as Record<string, unknown> : undefined;
+
+function normalizeArray<T>(value: unknown): T[] {
+  if (!value) {
+    return [];
+  }
+
+  if (Array.isArray(value)) {
+    return value as T[];
+  }
+
+  return [value as T];
+}
+
+function getVotingSessions(data: unknown): VotingSession[] {
+  if (!data) {
+    return [];
+  }
+
+  if (Array.isArray(data)) {
+    return data as VotingSession[];
+  }
+
+  const root = asRecord(data);
+
+  if (root) {
+    const topLevel = root['sessoesVotacao'];
+
+    if (Array.isArray(topLevel)) {
+      return topLevel as VotingSession[];
+    }
+
+    const nested = asRecord(topLevel);
+    if (nested) {
+      if (Array.isArray(nested['sessaoVotacao'])) {
+        return nested['sessaoVotacao'] as VotingSession[];
+      }
+      if (nested['sessaoVotacao']) {
+        return [nested['sessaoVotacao'] as VotingSession];
+      }
+    }
+
+    if (root['sessaoVotacao']) {
+      return normalizeArray<VotingSession>(root['sessaoVotacao']);
+    }
+  }
+
+  return normalizeArray<VotingSession>(data);
+}
+
 async function listVotingsHandler(
   args: unknown,
   context: ToolContext
 ): Promise<ToolResult> {
-  // Validate input
   const params = validateToolInput(
     ListVotingsSchema,
     args,
@@ -40,20 +92,36 @@ async function listVotingsHandler(
   context.logger.debug('Listing voting sessions', { params });
 
   try {
-    // Call Senado API
+    const query: Record<string, unknown> = {};
+
+    if (params.data) {
+      query['dataInicio'] = params.data;
+      query['dataFim'] = params.data;
+    }
+
     const response = await context.httpClient.get<unknown>(
-      '/votacao/lista',
-      params as Record<string, unknown>
+      '/votacao',
+      query
     );
 
-    // Format response
-    const text = JSON.stringify(response.data, null, 2);
+    const sessions = getVotingSessions(response.data);
+    const totalSessions = sessions.length;
+    const page = Math.max(params.pagina ?? 1, 1);
+    const defaultPageSize = totalSessions > 0 ? totalSessions : 1;
+    const pageSize = Math.max(params.itens ?? defaultPageSize, 1);
+    const startIndex = (page - 1) * pageSize;
+    const paginatedSessions = sessions.slice(
+      startIndex,
+      startIndex + pageSize
+    );
+
+    const text = JSON.stringify(paginatedSessions, null, 2);
 
     return {
       content: [
         {
           type: 'text',
-          text: `Votações do Senado Federal:\n\n${text}`,
+          text: `Votações do Senado Federal (${paginatedSessions.length} de ${totalSessions}):\n\n${text}`,
         },
       ],
     };

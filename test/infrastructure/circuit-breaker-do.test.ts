@@ -5,7 +5,7 @@ import { CircuitBreakerDurableObject } from '../../lib/durable-objects/circuit-b
  * Mock DurableObjectState for testing
  */
 class MockDurableObjectState implements DurableObjectState {
-  private storage: Map<string, unknown> = new Map();
+  private storageMap: Map<string, unknown> = new Map();
   id: DurableObjectId = {
     toString: () => 'test-circuit-breaker-id',
     equals: () => false,
@@ -22,19 +22,19 @@ class MockDurableObjectState implements DurableObjectState {
 
   storage = {
     get: async <T>(key: string): Promise<T | undefined> => {
-      return this.storage.get(key) as T | undefined;
+      return this.storageMap.get(key) as T | undefined;
     },
     put: async (key: string, value: unknown): Promise<void> => {
-      this.storage.set(key, value);
+      this.storageMap.set(key, value);
     },
     delete: async (key: string): Promise<boolean> => {
-      return this.storage.delete(key);
+      return this.storageMap.delete(key);
     },
     list: async () => {
-      return new Map(this.storage);
+      return new Map(this.storageMap);
     },
     deleteAll: async (): Promise<void> => {
-      this.storage.clear();
+      this.storageMap.clear();
     },
     transaction: async <T>(callback: () => Promise<T>): Promise<T> => {
       return callback();

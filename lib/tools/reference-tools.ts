@@ -25,6 +25,20 @@ import {
   zodToJsonSchema,
 } from '../core/validation.js';
 
+const IBGE_STATES_ENDPOINT =
+  'https://servicodados.ibge.gov.br/api/v1/localidades/estados';
+
+type IBGEState = {
+  id: number;
+  sigla: string;
+  nome: string;
+  regiao?: {
+    id: number;
+    sigla: string;
+    nome: string;
+  };
+};
+
 // ============================================================================
 // List Legislatures Tool
 // ============================================================================
@@ -48,8 +62,8 @@ async function listLegislaturesHandler(
   try {
     // Call Senado API
     const response = await context.httpClient.get<unknown>(
-      '/legislatura/lista',
-      params as Record<string, unknown>
+      '/plenario/lista/legislaturas',
+      {}
     );
 
     // Format response
@@ -248,7 +262,6 @@ async function listStatesHandler(
   args: unknown,
   context: ToolContext
 ): Promise<ToolResult> {
-  // Validate input
   const params = validateToolInput(
     ListStatesSchema,
     args,
@@ -258,20 +271,49 @@ async function listStatesHandler(
   context.logger.debug('Listing states', { params });
 
   try {
-    // Call Senado API
-    const response = await context.httpClient.get<unknown>(
-      '/uf/lista',
-      params as Record<string, unknown>
+    const response = await context.httpClient.get<IBGEState[]>(
+      IBGE_STATES_ENDPOINT,
+      {}
     );
 
-    // Format response
-    const text = JSON.stringify(response.data, null, 2);
+    if (!Array.isArray(response.data)) {
+      context.logger.warn('Unexpected response format from IBGE states API');
+      const fallbackText = JSON.stringify(response.data, null, 2);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Estados Brasileiros (dados brutos):\n\n${fallbackText}`,
+          },
+        ],
+      };
+    }
+
+    const sortedStates = [...response.data].sort((a, b) =>
+      a.sigla.localeCompare(b.sigla)
+    );
+
+    const totalStates = sortedStates.length;
+    const page = Math.max(params.pagina ?? 1, 1);
+    const pageSize = Math.max(params.itens ?? totalStates, 1);
+    const startIndex = (page - 1) * pageSize;
+    const paginatedStates = sortedStates.slice(
+      startIndex,
+      startIndex + pageSize
+    );
+
+    const lines = paginatedStates.map((state, index) => {
+      const regionName = state.regiao?.nome || 'Não informado';
+      return `${startIndex + index + 1}. ${state.nome} (${state.sigla}) - Região: ${regionName}`;
+    });
 
     return {
       content: [
         {
           type: 'text',
-          text: `Estados Brasileiros (UFs):\n\n${text}`,
+          text: `Estados Brasileiros (${paginatedStates.length} de ${totalStates}):\n\n${lines.join(
+            '\n'
+          )}`,
         },
       ],
     };
