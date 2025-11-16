@@ -14,6 +14,10 @@ import { createCircuitBreaker } from '../infrastructure/circuit-breaker.js';
 import { createToolRegistry } from '../core/tools.js';
 import { createHttpAdapter } from '../adapters/http.js';
 
+const SERVICE_DESCRIPTION = 'Model Context Protocol server for the Brazilian Federal Senate Open Data API.';
+const DEFAULT_DOCS_URL = 'https://github.com/cristianoaredes/mcp-camara#readme';
+const DEFAULT_REPO_URL = 'https://github.com/cristianoaredes/mcp-camara';
+
 /**
  * Main function
  */
@@ -121,6 +125,14 @@ async function main() {
         authEnabled: getEnv('HTTP_AUTH_ENABLED') === 'true',
         authToken: getEnv('HTTP_AUTH_TOKEN'),
         requestTimeout: getEnvNumber('HTTP_REQUEST_TIMEOUT', 30000),
+        serviceInfo: {
+          name: config.name,
+          description: SERVICE_DESCRIPTION,
+          version: config.version,
+          environment: config.nodeEnv,
+          documentationUrl: getEnv('MCP_DOCUMENTATION_URL') || DEFAULT_DOCS_URL,
+          repositoryUrl: getEnv('MCP_REPOSITORY_URL') || DEFAULT_REPO_URL,
+        },
       }
     );
 

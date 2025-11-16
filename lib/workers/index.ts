@@ -8,6 +8,10 @@ import { createLogger } from '../infrastructure/logger.js';
 import { createHttpClient } from '../infrastructure/http-client.js';
 import { createToolRegistry } from '../core/tools.js';
 import { createWorkersAdapter } from '../adapters/workers.js';
+
+const SERVICE_DESCRIPTION = 'Model Context Protocol server for the Brazilian Federal Senate Open Data API.';
+const DEFAULT_DOCS_URL = 'https://github.com/cristianoaredes/mcp-camara#readme';
+const DEFAULT_REPO_URL = 'https://github.com/cristianoaredes/mcp-camara';
 import type {
   ToolContext,
   LogLevel,
@@ -73,6 +77,13 @@ interface Env {
   // Logging
   MCP_LOG_LEVEL?: string;
   MCP_LOG_MASK_PII?: string;
+
+  // Metadata
+  MCP_SERVER_NAME?: string;
+  MCP_SERVER_VERSION?: string;
+  MCP_DOCUMENTATION_URL?: string;
+  MCP_REPOSITORY_URL?: string;
+  ENVIRONMENT?: string;
 }
 
 /**
@@ -456,6 +467,14 @@ function initializeMCPSenado(env: Env) {
     corsOrigin: getEnv(env, 'WORKERS_CORS_ORIGIN', '*'),
     authEnabled: getEnvBoolean(env, 'WORKERS_AUTH_ENABLED', false),
     authToken: getEnv(env, 'WORKERS_AUTH_TOKEN'),
+    serviceInfo: {
+      name: getEnv(env, 'MCP_SERVER_NAME', 'mcp-senado'),
+      description: SERVICE_DESCRIPTION,
+      version: getEnv(env, 'MCP_SERVER_VERSION', '1.0.0'),
+      environment: getEnv(env, 'ENVIRONMENT', 'production'),
+      documentationUrl: getEnv(env, 'MCP_DOCUMENTATION_URL', DEFAULT_DOCS_URL),
+      repositoryUrl: getEnv(env, 'MCP_REPOSITORY_URL', DEFAULT_REPO_URL),
+    },
   });
 
   logger.info('Workers adapter initialized with Durable Objects');

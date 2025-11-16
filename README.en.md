@@ -4,11 +4,11 @@
 > Connect AI assistants like Claude, Cursor, Windsurf and Continue.dev to official legislative data from the Brazilian Congress
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml/badge.svg)](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml)
+[![CI](https://github.com/cristianoaredes/mcp-camara/actions/workflows/ci.yml/badge.svg)](https://github.com/cristianoaredes/mcp-camara/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/Tests-211%20passing-brightgreen.svg)](https://github.com/cristianoaredes/mcp-senado)
-[![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow.svg)](https://github.com/cristianoaredes/mcp-senado)
+[![Tests](https://img.shields.io/badge/Tests-211%20passing-brightgreen.svg)](https://github.com/cristianoaredes/mcp-camara)
+[![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow.svg)](https://github.com/cristianoaredes/mcp-camara)
 [![NPM](https://img.shields.io/badge/NPM-@aredes.me/mcp--senado-red.svg)](https://www.npmjs.com/package/@aredes.me/mcp-senado)
 
 **English** | [Português](./README.md) | [Full Documentation](#-documentation) | [Contributing](./CONTRIBUTING.md)
@@ -112,14 +112,16 @@ npx @aredes.me/mcp-senado-http
 
 Base URL: `http://localhost:3000`
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check and server status |
-| `/api/tools` | GET | List all available tools |
-| `/api/tools/:name` | GET | Get specific tool details |
-| `/api/tools/:name` | POST | Invoke a tool |
-| `/api/tools/category/:category` | GET | List tools by category |
-| `/api/categories` | GET | List all categories |
+| Endpoint                        | Method   | Description                                        |
+| ------------------------------- | -------- | -------------------------------------------------- |
+| `/health`                       | GET      | Health check and server status                     |
+| `/mcp`                          | POST     | MCP JSON-RPC endpoint (`tools/list`, `tools/call`) |
+| `/sse`                          | GET/POST | Server-Sent Events transport for MCP               |
+| `/api/tools`                    | GET      | List all available tools                           |
+| `/api/tools/:name`              | GET      | Get specific tool details                          |
+| `/api/tools/:name`              | POST     | Invoke a tool                                      |
+| `/api/tools/category/:category` | GET      | List tools by category                             |
+| `/api/categories`               | GET      | List all categories                                |
 
 ### Example Requests
 
@@ -143,6 +145,18 @@ curl http://localhost:3000/api/tools/ufs_listar
 curl -X POST http://localhost:3000/api/tools/senadores_listar \
   -H "Content-Type: application/json" \
   -d '{"uf": "SP"}'
+```
+
+**JSON-RPC (tools/list):**
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":"demo","method":"tools/list"}'
+```
+
+**SSE Stream:**
+```bash
+curl -N -H "Accept: text/event-stream" http://localhost:3000/sse
 ```
 
 **With Authentication:**
@@ -175,8 +189,8 @@ Run the server in a Docker container for isolated, portable deployment:
 
 **1. Clone and configure:**
 ```bash
-git clone https://github.com/cristianoaredes/mcp-senado.git
-cd mcp-senado
+git clone https://github.com/cristianoaredes/mcp-camara.git
+cd mcp-camara
 cp .env.example .env  # Edit .env as needed
 ```
 
@@ -368,6 +382,8 @@ Once deployed, your Workers instance exposes the following REST endpoints:
 
 - `GET /health` - Health check endpoint
 - `GET /info` - Server information (version, tool count, etc.)
+- `POST /mcp` - MCP JSON-RPC endpoint
+- `GET /sse` - Server-Sent Events stream for MCP clients
 - `GET /api/tools` - List all available tools
 - `GET /api/tools/:name` - Get specific tool details
 - `POST /api/tools/:name` - Invoke a tool with parameters

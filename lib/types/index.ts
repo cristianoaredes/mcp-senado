@@ -312,3 +312,40 @@ export interface Legislature {
   dataFim: string;
   descricao?: string;
 }
+
+// ============================================================================
+// Service Metadata
+// ============================================================================
+
+export interface ServiceInfo {
+  name: string;
+  description: string;
+  version: string;
+  environment: string;
+  documentationUrl: string;
+  repositoryUrl: string;
+}
+
+// ============================================================================
+// MCP HTTP Transport Types
+// ============================================================================
+
+export interface MCPTransportRequest {
+  jsonrpc: string;
+  id: string | number | null;
+  method: string;
+  params?: unknown;
+}
+
+export interface MCPTransportError {
+  code: number;
+  message: string;
+  data?: unknown;
+}
+
+export interface MCPTransportResponse {
+  jsonrpc: string;
+  id: string | number | null;
+  result?: unknown;
+  error?: MCPTransportError;
+}

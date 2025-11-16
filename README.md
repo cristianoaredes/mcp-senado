@@ -4,11 +4,11 @@
 > Conecte assistentes de IA como Claude, Cursor, Windsurf e Continue.dev aos dados legislativos oficiais do Congresso Nacional
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml/badge.svg)](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml)
+[![CI](https://github.com/cristianoaredes/mcp-camara/actions/workflows/ci.yml/badge.svg)](https://github.com/cristianoaredes/mcp-camara/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/Tests-211%20passing-brightgreen.svg)](https://github.com/cristianoaredes/mcp-senado)
-[![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow.svg)](https://github.com/cristianoaredes/mcp-senado)
+[![Tests](https://img.shields.io/badge/Tests-211%20passing-brightgreen.svg)](https://github.com/cristianoaredes/mcp-camara)
+[![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow.svg)](https://github.com/cristianoaredes/mcp-camara)
 [![NPM](https://img.shields.io/badge/NPM-@aredes.me/mcp--senado-red.svg)](https://www.npmjs.com/package/@aredes.me/mcp-senado)
 
 [English](./README.en.md) | **Português** | [Documentação Completa](#-documentação) | [Contribuir](./CONTRIBUTING.md)
@@ -58,15 +58,15 @@
 
 ### 🛠️ 56 Ferramentas em 7 Categorias
 
-| Categoria | Ferramentas | Descrição |
-|-----------|-------------|-----------|
-| **Dados de Referência** | 10 ferramentas | Legislaturas, tipos de proposta, estados, comissões |
-| **Senadores** | 13 ferramentas | Busca, biografia, votações, propostas, discursos |
-| **Propostas Legislativas** | 12 ferramentas | Pesquisa, detalhes, votações, tramitação, textos |
-| **Votações** | 5 ferramentas | Sessões de votação, resultados, votos individuais |
-| **Comissões** | 5 ferramentas | Listagem, membros, reuniões, pautas |
-| **Partidos** | 5 ferramentas | Partidos, blocos, lideranças |
-| **Sessões Plenárias** | 6 ferramentas | Calendário, atas, discursos, resultados |
+| Categoria                  | Ferramentas    | Descrição                                           |
+| -------------------------- | -------------- | --------------------------------------------------- |
+| **Dados de Referência**    | 10 ferramentas | Legislaturas, tipos de proposta, estados, comissões |
+| **Senadores**              | 13 ferramentas | Busca, biografia, votações, propostas, discursos    |
+| **Propostas Legislativas** | 12 ferramentas | Pesquisa, detalhes, votações, tramitação, textos    |
+| **Votações**               | 5 ferramentas  | Sessões de votação, resultados, votos individuais   |
+| **Comissões**              | 5 ferramentas  | Listagem, membros, reuniões, pautas                 |
+| **Partidos**               | 5 ferramentas  | Partidos, blocos, lideranças                        |
+| **Sessões Plenárias**      | 6 ferramentas  | Calendário, atas, discursos, resultados             |
 
 ### 🚀 Características Técnicas
 
@@ -106,8 +106,8 @@ npx @aredes.me/mcp-senado
 ### Via Git (Desenvolvimento)
 
 ```bash
-git clone https://github.com/cristianoaredes/mcp-senado.git
-cd mcp-senado
+git clone https://github.com/cristianoaredes/mcp-camara.git
+cd mcp-camara
 npm install
 npm run build
 ```
@@ -322,6 +322,8 @@ HTTP_PORT=8080 npm run start:http
 
 ```bash
 GET  /health                    # Health check
+POST /mcp                       # Protocolo MCP via JSON-RPC
+GET  /sse                       # Streaming (Server-Sent Events)
 GET  /info                      # Informações do servidor
 GET  /api/tools                 # Lista todas as ferramentas
 GET  /api/tools/:name           # Detalhes de ferramenta
@@ -340,6 +342,14 @@ curl -X POST http://localhost:3000/api/tools/senadores_listar \
 
 # Health check
 curl http://localhost:3000/health
+
+# JSON-RPC (tools/list)
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":"demo","method":"tools/list"}'
+
+# SSE streaming (somente leitura)
+curl -N -H "Accept: text/event-stream" http://localhost:3000/sse
 ```
 
 **Autenticação (opcional):**
@@ -403,12 +413,12 @@ Deploy global em 300+ data centers com **Durable Objects** para estado persisten
 
 O MCP Senado utiliza **4 Durable Objects** para gerenciar estado distribuído:
 
-| Durable Object | Função | Benefício |
-|---|---|---|
-| **CacheDurableObject** | Cache LRU persistente com TTL | Cache compartilhado entre todas as requisições globalmente |
-| **RateLimiterDurableObject** | Rate limiting com token bucket | Limites de taxa distribuídos e precisos |
-| **CircuitBreakerDurableObject** | Circuit breaker pattern (CLOSED/OPEN/HALF_OPEN) | Proteção contra falhas em cascata da API |
-| **MetricsDurableObject** | Métricas agregadas e analytics | Observabilidade em tempo real de todas as requisições |
+| Durable Object                  | Função                                          | Benefício                                                  |
+| ------------------------------- | ----------------------------------------------- | ---------------------------------------------------------- |
+| **CacheDurableObject**          | Cache LRU persistente com TTL                   | Cache compartilhado entre todas as requisições globalmente |
+| **RateLimiterDurableObject**    | Rate limiting com token bucket                  | Limites de taxa distribuídos e precisos                    |
+| **CircuitBreakerDurableObject** | Circuit breaker pattern (CLOSED/OPEN/HALF_OPEN) | Proteção contra falhas em cascata da API                   |
+| **MetricsDurableObject**        | Métricas agregadas e analytics                  | Observabilidade em tempo real de todas as requisições      |
 
 **Por que Durable Objects?**
 - 🔄 **Estado persistente** entre todas as requisições Workers
@@ -614,13 +624,13 @@ curl https://mcp-senado-prod.seu-worker.workers.dev/v1/rate-limiter/stats
 
 **Cloudflare Workers + Durable Objects:**
 
-| Recurso | Free Tier | Paid Plan ($5/mês) |
-|---|---|---|
-| Workers Requests | 100.000/dia | 10M incluídos |
-| CPU Time | 10ms/req | 50ms/req |
-| **Durable Objects** | ❌ Não disponível | ✅ Incluído |
-| DO Requests | - | 1M incluídos |
-| DO Storage | - | 1GB incluído |
+| Recurso             | Free Tier        | Paid Plan ($5/mês) |
+| ------------------- | ---------------- | ------------------ |
+| Workers Requests    | 100.000/dia      | 10M incluídos      |
+| CPU Time            | 10ms/req         | 50ms/req           |
+| **Durable Objects** | ❌ Não disponível | ✅ Incluído         |
+| DO Requests         | -                | 1M incluídos       |
+| DO Storage          | -                | 1GB incluído       |
 
 **Estimativa de custos para 1M requisições/mês:**
 - Workers: ~$0-5 (dependendo do uso)
@@ -871,8 +881,8 @@ curl -X POST http://localhost:3000/api/tools/materias_pesquisar \
 
 ### Suporte e Comunidade
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/cristianoaredes/mcp-senado/issues)
-- 💬 **Discussões**: [GitHub Discussions](https://github.com/cristianoaredes/mcp-senado/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/cristianoaredes/mcp-camara/issues)
+- 💬 **Discussões**: [GitHub Discussions](https://github.com/cristianoaredes/mcp-camara/discussions)
 - 📧 **Email**: Contato com mantenedores
 - 🌟 **Star no GitHub**: Mostre seu apoio!
 
@@ -1030,8 +1040,8 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](.
 ## 📞 Contato
 
 - **GitHub**: [@cristianoaredes](https://github.com/cristianoaredes)
-- **Issues**: [Reportar bug ou sugerir feature](https://github.com/cristianoaredes/mcp-senado/issues)
-- **Discussions**: [Fórum da comunidade](https://github.com/cristianoaredes/mcp-senado/discussions)
+- **Issues**: [Reportar bug ou sugerir feature](https://github.com/cristianoaredes/mcp-camara/issues)
+- **Discussions**: [Fórum da comunidade](https://github.com/cristianoaredes/mcp-camara/discussions)
 
 ---
 

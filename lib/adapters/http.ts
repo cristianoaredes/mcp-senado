@@ -12,8 +12,20 @@
  */
 
 import express, { Request, Response, NextFunction } from 'express';
-import type { Logger, ToolDefinition } from '../types/index.js';
+import type {
+  Logger,
+  ServiceInfo,
+  ToolDefinition,
+  MCPTransportRequest,
+} from '../types/index.js';
 import type { ToolRegistry } from '../core/tools.js';
+import {
+  buildMCPInitMessage,
+  processMCPRequest,
+} from '../core/mcp-transport.js';
+
+const SSE_PING_INTERVAL_MS = 30000;
+const SSE_CONNECTION_TIMEOUT_MS = 55000;
 
 export interface HttpAdapterConfig {
   port: number;
@@ -22,6 +34,7 @@ export interface HttpAdapterConfig {
   authEnabled: boolean;
   authToken?: string;
   requestTimeout: number;
+  serviceInfo: ServiceInfo;
 }
 
 /**
@@ -121,6 +134,24 @@ export class HttpAdapter {
    * Set up HTTP routes
    */
   private setupRoutes(): void {
+    // Landing page / root endpoint
+    this.app.get('/', (_req: Request, res: Response) => {
+      res.json(this.buildLandingResponse());
+    });
+
+    // MCP JSON-RPC endpoint
+    this.app.post('/mcp', async (req: Request, res: Response) => {
+      await this.handleMCPHttpRequest(req, res);
+    });
+
+    // SSE endpoint (GET/POST)
+    this.app.get('/sse', async (req: Request, res: Response) => {
+      await this.handleSSE(req, res);
+    });
+    this.app.post('/sse', async (req: Request, res: Response) => {
+      await this.handleSSE(req, res);
+    });
+
     // Health check endpoint
     this.app.get('/health', (_req: Request, res: Response) => {
       res.json({
@@ -284,6 +315,9 @@ export class HttpAdapter {
         message: `Endpoint ${req.method} ${req.path} not found`,
         availableEndpoints: [
           'GET /health',
+          'POST /mcp',
+          'GET /sse',
+          'POST /sse',
           'GET /api/tools',
           'GET /api/tools/:name',
           'POST /api/tools/:name',
@@ -292,6 +326,207 @@ export class HttpAdapter {
         ],
       });
     });
+  }
+
+  private parseMCPRequestPayload(body: unknown): MCPTransportRequest | null {
+    if (!body) {
+      return null;
+    }
+
+    if (typeof body === 'string') {
+      try {
+        return JSON.parse(body) as MCPTransportRequest;
+      } catch {
+        return null;
+      }
+    }
+
+    if (typeof body === 'object') {
+      return body as MCPTransportRequest;
+    }
+
+    return null;
+  }
+
+  private async handleMCPHttpRequest(req: Request, res: Response): Promise<void> {
+    try {
+      const payload = this.parseMCPRequestPayload(req.body);
+
+      if (!payload) {
+        res.status(400).json({
+          error: 'Invalid MCP request payload',
+          message: 'Expected JSON-RPC body',
+        });
+        return;
+      }
+
+      const response = await processMCPRequest(payload, {
+        toolRegistry: this.toolRegistry,
+        logger: this.logger,
+      });
+
+      res.json(response);
+    } catch (error) {
+      this.logger.error('Failed to handle MCP HTTP request', error as Error);
+      res.status(500).json({
+        error: 'Internal Server Error',
+        message: (error as Error).message,
+      });
+    }
+  }
+
+  private async handleSSE(req: Request, res: Response): Promise<void> {
+    const acceptHeader = req.headers.accept;
+    if (
+      acceptHeader &&
+      !acceptHeader.includes('text/event-stream') &&
+      !acceptHeader.includes('*/*')
+    ) {
+      res.status(400).json({
+        error: 'SSE endpoint requires Accept: text/event-stream',
+      });
+      return;
+    }
+
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Flush headers so the connection stays open
+    if (typeof res.flushHeaders === 'function') {
+      res.flushHeaders();
+    }
+
+    const sendEvent = (
+      data: unknown,
+      event?: string,
+      id?: string | number | null
+    ) => {
+      let payload = '';
+      if (id !== undefined && id !== null) {
+        payload += `id: ${id}\n`;
+      }
+      if (event) {
+        payload += `event: ${event}\n`;
+      }
+      payload += `data: ${JSON.stringify(data)}\n\n`;
+      res.write(payload);
+    };
+
+    const sendErrorEvent = (message: string) => {
+      sendEvent(
+        {
+          type: 'error',
+          message,
+          timestamp: new Date().toISOString(),
+        },
+        'error'
+      );
+    };
+
+    sendEvent(
+      {
+        type: 'connection',
+        status: 'connected',
+        server: this.config.serviceInfo.name,
+        version: this.config.serviceInfo.version,
+        timestamp: new Date().toISOString(),
+      },
+      'connection'
+    );
+
+    const initMessage = buildMCPInitMessage(this.config.serviceInfo);
+    sendEvent(initMessage, 'message', initMessage.id);
+
+    const pingInterval = setInterval(() => {
+      sendEvent(
+        {
+          type: 'ping',
+          timestamp: new Date().toISOString(),
+        },
+        'ping'
+      );
+    }, SSE_PING_INTERVAL_MS);
+
+    let closed = false;
+    let timeoutHandle: NodeJS.Timeout;
+
+    const cleanup = () => {
+      if (closed) return;
+      closed = true;
+      clearInterval(pingInterval);
+      clearTimeout(timeoutHandle);
+      res.end();
+    };
+
+    timeoutHandle = setTimeout(() => {
+      cleanup();
+    }, SSE_CONNECTION_TIMEOUT_MS);
+
+    req.on('close', cleanup);
+
+    if (req.method === 'POST') {
+      try {
+        const payload = this.parseMCPRequestPayload(req.body);
+        if (!payload) {
+          sendErrorEvent('Invalid MCP request payload');
+        } else {
+          const response = await processMCPRequest(payload, {
+            toolRegistry: this.toolRegistry,
+            logger: this.logger,
+          });
+
+          sendEvent(
+            response,
+            'message',
+            payload.id !== undefined && payload.id !== null
+              ? payload.id
+              : undefined
+          );
+        }
+      } catch (error) {
+        this.logger.error('Failed to process SSE MCP request', error as Error);
+        sendErrorEvent(
+          error instanceof Error ? error.message : 'Internal Server Error'
+        );
+      }
+    }
+
+    // Keep the connection open until timeout or client disconnects
+  }
+
+  /**
+   * Build response payload for the landing page
+   */
+  private buildLandingResponse(): Record<string, unknown> {
+    const categories = this.toolRegistry.getCategories();
+
+    const endpoints = [
+      { method: 'GET', path: '/health', description: 'Service health and basic stats' },
+      { method: 'POST', path: '/mcp', description: 'MCP JSON-RPC endpoint' },
+      { method: 'GET', path: '/sse', description: 'Server-Sent Events transport' },
+      { method: 'GET', path: '/api/tools', description: 'List all available MCP tools' },
+      { method: 'GET', path: '/api/categories', description: 'List all tool categories' },
+      { method: 'GET', path: '/api/tools/:name', description: 'Get schema and metadata for a tool' },
+      { method: 'POST', path: '/api/tools/:name', description: 'Invoke a tool with JSON payload' },
+      { method: 'GET', path: '/api/tools/category/:category', description: 'List tools that belong to a category' },
+    ];
+
+    return {
+      name: this.config.serviceInfo.name,
+      status: 'online',
+      description: this.config.serviceInfo.description,
+      version: this.config.serviceInfo.version,
+      environment: this.config.serviceInfo.environment,
+      documentation: this.config.serviceInfo.documentationUrl,
+      repository: this.config.serviceInfo.repositoryUrl,
+      stats: {
+        toolCount: this.toolRegistry.count(),
+        categories,
+      },
+      endpoints,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   /**

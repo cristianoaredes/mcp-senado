@@ -28,7 +28,7 @@ This project adheres to a code of conduct that all contributors are expected to 
 
 3. **Add upstream remote**:
    ```bash
-   git remote add upstream https://github.com/cristianoaredes/mcp-senado.git
+   git remote add upstream https://github.com/cristianoaredes/mcp-camara.git
    ```
 
 ## Development Setup
@@ -180,7 +180,7 @@ describe('Feature Name', () => {
    ```
 
 4. **Create a Pull Request** on GitHub:
-   - Base: `cristianoaredes/mcp-senado:develop`
+   - Base: `cristianoaredes/mcp-camara:develop`
    - Head: `YOUR_USERNAME/mcp-senado:feature/my-new-feature`
 
 5. **Fill out the PR template** with:

@@ -58,12 +58,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cristianoaredes/mcp-senado.git"
+    "url": "https://github.com/cristianoaredes/mcp-camara.git"
   },
   "bugs": {
-    "url": "https://github.com/cristianoaredes/mcp-senado/issues"
+    "url": "https://github.com/cristianoaredes/mcp-camara/issues"
   },
-  "homepage": "https://github.com/cristianoaredes/mcp-senado#readme",
+  "homepage": "https://github.com/cristianoaredes/mcp-camara#readme",
   "engines": {
     "node": ">=18.0.0"
   },

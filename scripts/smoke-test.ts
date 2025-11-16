@@ -11,6 +11,28 @@ type TestDefinition = {
 };
 
 const tests: TestDefinition[] = [
+  {
+    name: 'mcp_tools_list',
+    path: '/mcp',
+    body: {
+      jsonrpc: '2.0',
+      id: 'smoke-list',
+      method: 'tools/list',
+    },
+  },
+  {
+    name: 'mcp_tools_call',
+    path: '/mcp',
+    body: {
+      jsonrpc: '2.0',
+      id: 'smoke-call',
+      method: 'tools/call',
+      params: {
+        name: 'ufs_listar',
+        arguments: {},
+      },
+    },
+  },
   { name: 'health', path: '/health', method: 'GET' },
   { name: 'ufs_listar', path: '/api/tools/ufs_listar', body: {} },
   { name: 'senadores_SP', path: '/api/tools/senadores_listar', body: { uf: 'SP' } },
