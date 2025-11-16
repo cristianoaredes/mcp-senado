@@ -46,6 +46,12 @@ interface Env {
   CIRCUIT_BREAKER: DurableObjectNamespace;
   METRICS: DurableObjectNamespace;
 
+  // Workers KV Namespace (for static/long-lived cache data)
+  STATIC_CACHE_KV: KVNamespace;
+
+  // Analytics Engine Dataset (for detailed metrics tracking)
+  ANALYTICS: AnalyticsEngineDataset;
+
   // API Configuration
   SENADO_API_BASE_URL?: string;
 
@@ -128,19 +134,35 @@ function mapLogLevel(level: string): LogLevel {
 }
 
 /**
- * Durable Object Cache Adapter
+ * Hybrid Cache Adapter
  *
- * Wraps Durable Object HTTP calls to implement CacheInterface
+ * Uses Workers KV for static/long-lived data (reference data)
+ * and Durable Objects for dynamic/short-lived data
  */
-class DurableObjectCacheAdapter implements CacheInterface {
+class HybridCacheAdapter implements CacheInterface {
   private stub: DurableObjectStub;
+  private kv: KVNamespace | null;
   private logger: Logger;
   private enabled: boolean;
+  private staticPrefixes = ['ref:', 'legislaturas:', 'ufs:', 'tipos:', 'partidos:'];
 
-  constructor(stub: DurableObjectStub, logger: Logger, enabled: boolean = true) {
+  constructor(
+    stub: DurableObjectStub,
+    kv: KVNamespace | null,
+    logger: Logger,
+    enabled: boolean = true
+  ) {
     this.stub = stub;
+    this.kv = kv;
     this.logger = logger;
     this.enabled = enabled;
+  }
+
+  /**
+   * Check if key is for static/reference data
+   */
+  private isStaticKey(key: string): boolean {
+    return this.staticPrefixes.some((prefix) => key.startsWith(prefix));
   }
 
   async get<T>(key: string): Promise<T | null> {
@@ -149,6 +171,16 @@ class DurableObjectCacheAdapter implements CacheInterface {
     }
 
     try {
+      // Try KV first for static data
+      if (this.isStaticKey(key) && this.kv) {
+        const kvValue = await this.kv.get(key, { type: 'json' });
+        if (kvValue) {
+          this.logger.debug('Cache hit (KV)', { key });
+          return kvValue as T;
+        }
+      }
+
+      // Fall back to Durable Object cache
       const url = new URL('http://do/get');
       url.searchParams.set('key', key);
       const response = await this.stub.fetch(url.toString());
@@ -159,10 +191,10 @@ class DurableObjectCacheAdapter implements CacheInterface {
         return data.value;
       }
 
-      this.logger.debug('Cache miss (DO)', { key });
+      this.logger.debug('Cache miss', { key });
       return null;
     } catch (error) {
-      this.logger.error('Cache get error (DO)', error as Error, { key });
+      this.logger.error('Cache get error', error as Error, { key });
       return null;
     }
   }
@@ -173,6 +205,17 @@ class DurableObjectCacheAdapter implements CacheInterface {
     }
 
     try {
+      // Use KV for static data with long TTL (24 hours default)
+      if (this.isStaticKey(key) && this.kv) {
+        const expirationTtl = ttl ? Math.floor(ttl / 1000) : 86400; // 24h in seconds
+        await this.kv.put(key, JSON.stringify(value), {
+          expirationTtl,
+        });
+        this.logger.debug('Cache set (KV)', { key, ttl: expirationTtl });
+        return;
+      }
+
+      // Use DO for dynamic data
       await this.stub.fetch('http://do/set', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -180,7 +223,7 @@ class DurableObjectCacheAdapter implements CacheInterface {
       });
       this.logger.debug('Cache set (DO)', { key, ttl });
     } catch (error) {
-      this.logger.error('Cache set error (DO)', error as Error, { key });
+      this.logger.error('Cache set error', error as Error, { key });
     }
   }
 
@@ -190,12 +233,18 @@ class DurableObjectCacheAdapter implements CacheInterface {
     }
 
     try {
+      // Delete from both KV and DO
+      if (this.isStaticKey(key) && this.kv) {
+        await this.kv.delete(key);
+        this.logger.debug('Cache delete (KV)', { key });
+      }
+
       const url = new URL('http://do/delete');
       url.searchParams.set('key', key);
       await this.stub.fetch(url.toString(), { method: 'DELETE' });
       this.logger.debug('Cache delete (DO)', { key });
     } catch (error) {
-      this.logger.error('Cache delete error (DO)', error as Error, { key });
+      this.logger.error('Cache delete error', error as Error, { key });
     }
   }
 
@@ -205,10 +254,11 @@ class DurableObjectCacheAdapter implements CacheInterface {
     }
 
     try {
+      // Note: KV doesn't have a clear all operation, only DO
       await this.stub.fetch('http://do/clear', { method: 'POST' });
-      this.logger.info('Cache cleared (DO)');
+      this.logger.info('Cache cleared (DO only - KV requires manual cleanup)');
     } catch (error) {
-      this.logger.error('Cache clear error (DO)', error as Error);
+      this.logger.error('Cache clear error', error as Error);
     }
   }
 
@@ -359,9 +409,10 @@ function initializeMCPSenado(env: Env) {
   const metricsId = env.METRICS.idFromName('global-metrics');
   const metricsStub = env.METRICS.get(metricsId);
 
-  // Create infrastructure components using Durable Objects
-  const cache = new DurableObjectCacheAdapter(
+  // Create infrastructure components using Hybrid Cache (KV + Durable Objects)
+  const cache = new HybridCacheAdapter(
     cacheStub,
+    env.STATIC_CACHE_KV || null,
     logger,
     getEnvBoolean(env, 'MCP_CACHE_ENABLED', true)
   );
@@ -456,8 +507,21 @@ function initializeMCPSenado(env: Env) {
             duration,
           }),
         }).catch((error) => {
-          logger.warn('Failed to record metrics', { error });
+          logger.warn('Failed to record metrics to DO', { error });
         });
+
+        // Record to Analytics Engine for detailed tracking
+        if (env.ANALYTICS) {
+          try {
+            env.ANALYTICS.writeDataPoint({
+              blobs: [name, tool.category, success ? 'success' : 'error'],
+              doubles: [duration],
+              indexes: [success ? '1' : '0'],
+            });
+          } catch (error) {
+            logger.warn('Failed to record to Analytics Engine', { error });
+          }
+        }
       }
     }
   };

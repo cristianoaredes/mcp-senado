@@ -6,7 +6,7 @@ compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
 # Account information (set via environment or CLI)
-# account_id = ""
+account_id = "205abed8e2de65cb7cc858f02be6fc15"
 
 # Durable Objects - Persistent state across all Workers instances
 [[durable_objects.bindings]]
@@ -28,6 +28,15 @@ script_name = "mcp-senado"
 name = "METRICS"
 class_name = "MetricsDurableObject"
 script_name = "mcp-senado"
+
+# Workers KV - Static data cache (long TTL for reference data)
+[[kv_namespaces]]
+binding = "STATIC_CACHE_KV"
+id = "dfd4c3d1755b427483a9714ddd931b37"
+
+# Analytics Engine - Detailed metrics tracking
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
 
 # Durable Objects Migrations
 [[migrations]]
@@ -69,6 +78,13 @@ name = "METRICS"
 class_name = "MetricsDurableObject"
 script_name = "mcp-senado"
 
+[[env.development.kv_namespaces]]
+binding = "STATIC_CACHE_KV"
+id = "dfd4c3d1755b427483a9714ddd931b37"
+
+[[env.development.analytics_engine_datasets]]
+binding = "ANALYTICS"
+
 # Staging environment
 [env.staging]
 name = "mcp-senado-staging"
@@ -103,6 +119,13 @@ script_name = "mcp-senado"
 name = "METRICS"
 class_name = "MetricsDurableObject"
 script_name = "mcp-senado"
+
+[[env.staging.kv_namespaces]]
+binding = "STATIC_CACHE_KV"
+id = "dfd4c3d1755b427483a9714ddd931b37"
+
+[[env.staging.analytics_engine_datasets]]
+binding = "ANALYTICS"
 
 # Production environment
 [env.production]
@@ -139,6 +162,13 @@ script_name = "mcp-senado"
 name = "METRICS"
 class_name = "MetricsDurableObject"
 script_name = "mcp-senado"
+
+[[env.production.kv_namespaces]]
+binding = "STATIC_CACHE_KV"
+id = "dfd4c3d1755b427483a9714ddd931b37"
+
+[[env.production.analytics_engine_datasets]]
+binding = "ANALYTICS"
 
 # Environment variables (non-secret)
 [vars]
