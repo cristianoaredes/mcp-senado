@@ -1,6 +1,6 @@
 name: mcp-senado
 version: 0.2.0
-description: MCP server for Brazilian Federal Senate Open Data API with MCP protocol compliance and Workers KV optimization. Access 56 tools across 7 categories for comprehensive legislative data.
+description: Official MCP server connecting AI assistants (Claude, Cursor, Continue) to Brazilian Federal Senate (Senado Federal) Open Data API. Query senator voting records, legislative proposals, committee activities, and congress sessions. 56 tools for legislative transparency, political research, and data journalism. Supports Portuguese and English. Deploy via Docker, Cloudflare Workers, or HTTP/REST API.
 author: Cristiano Aredes
 license: MIT
 homepage: https://github.com/cristianoaredes/mcp-senado
@@ -45,24 +45,46 @@ config:
       default: "INFO"
       required: false
 
-# Categories
+# Categories (ordenadas por relevância para busca)
 categories:
   - government
+  - legislative
+  - brazil
   - data
-  - brazil
-  - legislative
   - politics
+  - transparency
+  - research
 
-# Keywords
+# Keywords (otimizadas para descoberta - mix de EN/PT-BR e técnicas/funcionais)
 keywords:
-  - senado
-  - brazil
-  - legislative
-  - senate
-  - politics
-  - government
+  # Primary keywords (high search volume)
+  - brazilian-senate
+  - senado-federal
+  - legislative-data
+  - congress-api
+  - voting-records
+  # Secondary keywords (medium volume, high relevance)
+  - senate-bills
+  - political-transparency
+  - parliamentary-data
+  - government-api
   - open-data
   - dados-abertos
+  # Technical keywords (developer audience)
+  - mcp-server
+  - model-context-protocol
+  - claude-integration
+  - ai-assistant
+  # Use case keywords (conversion-focused)
+  - data-journalism
+  - political-research
+  - civic-tech
+  # Geographic/domain keywords
+  - brazil
+  - brasil
+  - senado
+  - congress
+  - congresso
 
 # Tools provided (high-level categories)
 tools:
