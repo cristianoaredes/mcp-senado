@@ -918,7 +918,7 @@ Contribuições são muito bem-vindas! Este é um projeto open-source mantido pe
 - 🐛 Correção de bugs
 - ⚡ Otimizações de performance
 
-Veja [CONTRIBUTING.md](./CONTRIBUTING.md) para guia completo.
+Veja [CONTRIBUTING.md](./CONTRIBUTING.md) para guia completo e o manual resumido em [AGENTS.md](./AGENTS.md) para agentes MCP ou contribuintes que precisam de uma visão rápida das diretrizes.
 
 ---
 
