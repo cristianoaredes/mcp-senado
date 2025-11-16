@@ -1,5 +1,5 @@
 name: mcp-senado
-version: 0.2.0
+version: 0.2.1
 description: Official MCP server connecting AI assistants (Claude, Cursor, Continue) to Brazilian Federal Senate (Senado Federal) Open Data API. Query senator voting records, legislative proposals, committee activities, and congress sessions. 56 tools for legislative transparency, political research, and data journalism. Supports Portuguese and English. Deploy via Docker, Cloudflare Workers, or HTTP/REST API.
 author: Cristiano Aredes
 license: MIT
