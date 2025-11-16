@@ -4,11 +4,11 @@
 > Connect AI assistants like Claude, Cursor, Windsurf and Continue.dev to official legislative data from the Brazilian Congress
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/cristianoaredes/mcp-camara/actions/workflows/ci.yml/badge.svg)](https://github.com/cristianoaredes/mcp-camara/actions/workflows/ci.yml)
+[![CI](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml/badge.svg)](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/Tests-211%20passing-brightgreen.svg)](https://github.com/cristianoaredes/mcp-camara)
-[![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow.svg)](https://github.com/cristianoaredes/mcp-camara)
+[![Tests](https://img.shields.io/badge/Tests-211%20passing-brightgreen.svg)](https://github.com/cristianoaredes/mcp-senado)
+[![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow.svg)](https://github.com/cristianoaredes/mcp-senado)
 [![NPM](https://img.shields.io/badge/NPM-@aredes.me/mcp--senado-red.svg)](https://www.npmjs.com/package/@aredes.me/mcp-senado)
 
 **English** | [Português](./README.md) | [Full Documentation](#-documentation) | [Contributing](./CONTRIBUTING.md)
@@ -189,8 +189,8 @@ Run the server in a Docker container for isolated, portable deployment:
 
 **1. Clone and configure:**
 ```bash
-git clone https://github.com/cristianoaredes/mcp-camara.git
-cd mcp-camara
+git clone https://github.com/cristianoaredes/mcp-senado.git
+cd mcp-senado
 cp .env.example .env  # Edit .env as needed
 ```
 

@@ -15,8 +15,8 @@ import { createToolRegistry } from '../core/tools.js';
 import { createHttpAdapter } from '../adapters/http.js';
 
 const SERVICE_DESCRIPTION = 'Model Context Protocol server for the Brazilian Federal Senate Open Data API.';
-const DEFAULT_DOCS_URL = 'https://github.com/cristianoaredes/mcp-camara#readme';
-const DEFAULT_REPO_URL = 'https://github.com/cristianoaredes/mcp-camara';
+const DEFAULT_DOCS_URL = 'https://github.com/cristianoaredes/mcp-senado#readme';
+const DEFAULT_REPO_URL = 'https://github.com/cristianoaredes/mcp-senado';
 
 /**
  * Main function

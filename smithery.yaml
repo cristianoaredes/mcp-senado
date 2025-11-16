@@ -3,8 +3,8 @@ version: 1.0.0
 description: MCP server for Brazilian Federal Senate Open Data API. Access legislative data including senators, proposals, voting records, committees, and parties.
 author: Cristiano Aredes
 license: MIT
-homepage: https://github.com/cristianoaredes/mcp-camara
-repository: https://github.com/cristianoaredes/mcp-camara
+homepage: https://github.com/cristianoaredes/mcp-senado
+repository: https://github.com/cristianoaredes/mcp-senado
 
 # Installation method
 install:

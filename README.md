@@ -4,11 +4,11 @@
 > Conecte assistentes de IA como Claude, Cursor, Windsurf e Continue.dev aos dados legislativos oficiais do Congresso Nacional
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/cristianoaredes/mcp-camara/actions/workflows/ci.yml/badge.svg)](https://github.com/cristianoaredes/mcp-camara/actions/workflows/ci.yml)
+[![CI](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml/badge.svg)](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![Tests](https://img.shields.io/badge/Tests-211%20passing-brightgreen.svg)](https://github.com/cristianoaredes/mcp-camara)
-[![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow.svg)](https://github.com/cristianoaredes/mcp-camara)
+[![Tests](https://img.shields.io/badge/Tests-211%20passing-brightgreen.svg)](https://github.com/cristianoaredes/mcp-senado)
+[![Coverage](https://img.shields.io/badge/Coverage-73%25-yellow.svg)](https://github.com/cristianoaredes/mcp-senado)
 [![NPM](https://img.shields.io/badge/NPM-@aredes.me/mcp--senado-red.svg)](https://www.npmjs.com/package/@aredes.me/mcp-senado)
 
 [English](./README.en.md) | **Português** | [Documentação Completa](#-documentação) | [Contribuir](./CONTRIBUTING.md)
@@ -106,8 +106,8 @@ npx @aredes.me/mcp-senado
 ### Via Git (Desenvolvimento)
 
 ```bash
-git clone https://github.com/cristianoaredes/mcp-camara.git
-cd mcp-camara
+git clone https://github.com/cristianoaredes/mcp-senado.git
+cd mcp-senado
 npm install
 npm run build
 ```
@@ -881,8 +881,8 @@ curl -X POST http://localhost:3000/api/tools/materias_pesquisar \
 
 ### Suporte e Comunidade
 
-- 🐛 **Issues**: [GitHub Issues](https://github.com/cristianoaredes/mcp-camara/issues)
-- 💬 **Discussões**: [GitHub Discussions](https://github.com/cristianoaredes/mcp-camara/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/cristianoaredes/mcp-senado/issues)
+- 💬 **Discussões**: [GitHub Discussions](https://github.com/cristianoaredes/mcp-senado/discussions)
 - 📧 **Email**: Contato com mantenedores
 - 🌟 **Star no GitHub**: Mostre seu apoio!
 
@@ -1040,8 +1040,8 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](.
 ## 📞 Contato
 
 - **GitHub**: [@cristianoaredes](https://github.com/cristianoaredes)
-- **Issues**: [Reportar bug ou sugerir feature](https://github.com/cristianoaredes/mcp-camara/issues)
-- **Discussions**: [Fórum da comunidade](https://github.com/cristianoaredes/mcp-camara/discussions)
+- **Issues**: [Reportar bug ou sugerir feature](https://github.com/cristianoaredes/mcp-senado/issues)
+- **Discussions**: [Fórum da comunidade](https://github.com/cristianoaredes/mcp-senado/discussions)
 
 ---
 

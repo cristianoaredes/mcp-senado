@@ -28,7 +28,7 @@ This project adheres to a code of conduct that all contributors are expected to 
 
 3. **Add upstream remote**:
    ```bash
-   git remote add upstream https://github.com/cristianoaredes/mcp-camara.git
+   git remote add upstream https://github.com/cristianoaredes/mcp-senado.git
    ```
 
 ## Development Setup
@@ -81,18 +81,17 @@ npm run dev:workers
 
 ### Branching Strategy
 
-- `main` - Production-ready code
-- `develop` - Development branch (base for features)
+- `master` - Production-ready code and base for new work
 - `feature/*` - New features
 - `fix/*` - Bug fixes
 - `docs/*` - Documentation updates
 
 ### Workflow
 
-1. **Create a feature branch** from `develop`:
+1. **Create a feature branch** from `master`:
    ```bash
-   git checkout develop
-   git pull upstream develop
+   git checkout master
+   git pull upstream master
    git checkout -b feature/my-new-feature
    ```
 
@@ -168,10 +167,10 @@ describe('Feature Name', () => {
 
 1. **Update documentation** if needed (README, comments, etc.)
 
-2. **Ensure your branch is up to date** with `develop`:
+2. **Ensure your branch is up to date** with `master`:
    ```bash
    git fetch upstream
-   git rebase upstream/develop
+   git rebase upstream/master
    ```
 
 3. **Push your branch** to your fork:
@@ -180,7 +179,7 @@ describe('Feature Name', () => {
    ```
 
 4. **Create a Pull Request** on GitHub:
-   - Base: `cristianoaredes/mcp-camara:develop`
+   - Base: `cristianoaredes/mcp-senado:master`
    - Head: `YOUR_USERNAME/mcp-senado:feature/my-new-feature`
 
 5. **Fill out the PR template** with:
