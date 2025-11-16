@@ -50,5 +50,8 @@ temp/
 .cache/
 .parcel-cache/
 
+# Kiro AI
+.kiro/
+
 # OS
 Thumbs.db
