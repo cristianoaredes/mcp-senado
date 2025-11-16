@@ -1,7 +1,7 @@
-# MCP Senado Federal 🇧🇷
+# MCP Senado Federal 🇧🇷 | Brazilian Senate Open Data API for AI Assistants
 
-> **Servidor MCP para API de Dados Abertos do Senado Federal Brasileiro**
-> Conecte assistentes de IA como Claude, Cursor, Windsurf e Continue.dev aos dados legislativos oficiais do Congresso Nacional
+> **Official MCP Server** for querying Brazilian Federal Senate (Senado Federal) legislative data via Claude, Cursor, Windsurf, and Continue.dev
+> Access senator voting records, legislative proposals, committee activities, and congress sessions. 56 tools for legislative transparency, political research, and data journalism.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml/badge.svg)](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml)
@@ -1010,6 +1010,50 @@ mcp-senado/
 - [ ] Integração com mais assistentes de IA
 
 Veja [ROADMAP.md](./ROADMAP.md) para planejamento completo.
+
+---
+
+## ❓ Perguntas Frequentes (FAQ)
+
+### O que é MCP Senado Federal?
+MCP Senado é um servidor oficial do Model Context Protocol que conecta assistentes de IA à API de Dados Abertos do Senado Federal Brasileiro, permitindo consultas sobre senadores, propostas legislativas, votações e atividades do Congresso.
+
+### Como integrar com Claude Desktop?
+Adicione a seguinte configuração ao seu `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "senado-federal": {
+      "command": "npx",
+      "args": ["-y", "@aredes.me/mcp-senado"]
+    }
+  }
+}
+```
+
+**Localização do arquivo:**
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
+### Posso usar para pesquisa política?
+Sim! O MCP Senado oferece 56 ferramentas perfeitas para pesquisa política, jornalismo de dados e estudos acadêmicos sobre comportamento legislativo brasileiro.
+
+### Os dados são oficiais e atualizados?
+Todos os dados vêm diretamente da API oficial de Dados Abertos do Senado Federal (https://legis.senado.leg.br/dadosabertos), mantida pelo governo brasileiro.
+
+### Quais idiomas são suportados?
+O servidor suporta português (PT-BR) e inglês. Os nomes das ferramentas estão em português, mas a documentação é totalmente bilíngue.
+
+### Posso fazer deploy em produção?
+Sim! Faça deploy via Docker, Cloudflare Workers (com Durable Objects) ou como servidor HTTP/REST standalone. Veja a documentação de deployment.
+
+### É gratuito?
+Sim! O projeto é open-source (licença MIT) e a API do Senado é pública e gratuita. Se você usar Cloudflare Workers, há um plano gratuito disponível (com limitações).
+
+### Como contribuir com o projeto?
+Contribuições são muito bem-vindas! Veja o guia completo em [CONTRIBUTING.md](./CONTRIBUTING.md) e o resumo em [AGENTS.md](./AGENTS.md).
 
 ---
 
