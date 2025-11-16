@@ -1,7 +1,7 @@
-# MCP Senado Federal 🇧🇷
+# MCP Senado Federal 🇧🇷 | Brazilian Senate Open Data API for AI Assistants
 
-> **MCP Server for the Brazilian Federal Senate Open Data API**
-> Connect AI assistants like Claude, Cursor, Windsurf and Continue.dev to official legislative data from the Brazilian Congress
+> **Official MCP Server** for querying Brazilian Federal Senate (Senado Federal) legislative data via Claude, Cursor, Windsurf, and Continue.dev
+> Access senator voting records, legislative proposals, committee activities, and congress sessions. 56 tools for legislative transparency, political research, and data journalism.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml/badge.svg)](https://github.com/cristianoaredes/mcp-senado/actions/workflows/ci.yml)
@@ -516,6 +516,52 @@ Senado Federal Open Data API
 ## 🤝 Contributing
 
 Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+---
+
+## ❓ Frequently Asked Questions (FAQ)
+
+### What is MCP Senado Federal?
+MCP Senado is an official Model Context Protocol server that connects AI assistants to the Brazilian Federal Senate Open Data API, enabling queries about senators, legislative proposals, voting records, and Congress activities.
+
+### How to integrate with Claude Desktop?
+Add the following configuration to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "senado-federal": {
+      "command": "npx",
+      "args": ["-y", "@aredes.me/mcp-senado"]
+    }
+  }
+}
+```
+
+**Configuration file location:**
+- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+- **Linux**: `~/.config/Claude/claude_desktop_config.json`
+
+### Can I use this for political research?
+Yes! MCP Senado offers 56 tools perfect for political research, data journalism, and academic studies on Brazilian legislative behavior.
+
+### Is the data official and up-to-date?
+All data comes directly from the official Brazilian Federal Senate Open Data API (https://legis.senado.leg.br/dadosabertos), maintained by the Brazilian government.
+
+### What languages are supported?
+The server supports Portuguese (PT-BR) and English. Tool names are in Portuguese, but documentation is fully bilingual.
+
+### Can I deploy this in production?
+Yes! Deploy via Docker, Cloudflare Workers (with Durable Objects), or as a standalone HTTP/REST server. See the deployment documentation.
+
+### Is it free?
+Yes! The project is open-source (MIT license) and the Senate API is public and free. If you use Cloudflare Workers, there's a free tier available (with limitations).
+
+### How can I contribute to the project?
+Contributions are very welcome! See the complete guide in [CONTRIBUTING.md](./CONTRIBUTING.md) and the summary in [AGENTS.md](./AGENTS.md).
+
+---
 
 ## 📄 License
 
