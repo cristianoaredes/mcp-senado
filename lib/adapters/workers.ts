@@ -201,7 +201,7 @@ export class WorkersAdapter {
     }
   }
 
-  private async handleSSE(request: Request): Promise<Response> {
+  private handleSSE(request: Request): Response {
     const acceptHeader = request.headers.get('Accept');
     if (
       acceptHeader &&
@@ -245,109 +245,108 @@ export class WorkersAdapter {
       );
     };
 
-    try {
-      await writeEvent(
-        {
-          type: 'connection',
-          status: 'connected',
-          server: this.config.serviceInfo.name,
-          version: this.config.serviceInfo.version,
-          timestamp: new Date().toISOString(),
-        },
-        'connection'
-      );
-
-      const initMessage = buildMCPInitMessage(this.config.serviceInfo);
-      await writeEvent(initMessage, 'message', initMessage.id);
-
-      const pingInterval = setInterval(() => {
-        writeEvent(
+    const run = async () => {
+      try {
+        await writeEvent(
           {
-            type: 'ping',
+            type: 'connection',
+            status: 'connected',
+            server: this.config.serviceInfo.name,
+            version: this.config.serviceInfo.version,
             timestamp: new Date().toISOString(),
           },
-          'ping'
-        ).catch((error) => {
-          this.logger.warn('Failed to send SSE ping', { error });
-        });
-      }, SSE_PING_INTERVAL_MS);
+          'connection'
+        );
 
-      const abortSignal = request.signal;
-      let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+        const initMessage = buildMCPInitMessage(this.config.serviceInfo);
+        await writeEvent(initMessage, 'message', initMessage.id);
 
-      const closeStream = () => {
-        clearInterval(pingInterval);
-        if (timeoutHandle) {
-          clearTimeout(timeoutHandle);
-        }
+        const pingInterval = setInterval(() => {
+          writeEvent(
+            {
+              type: 'ping',
+              timestamp: new Date().toISOString(),
+            },
+            'ping'
+          ).catch((error) => {
+            this.logger.warn('Failed to send SSE ping', { error });
+          });
+        }, SSE_PING_INTERVAL_MS);
+
+        const abortSignal = request.signal;
+        let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+
+        const closeStream = () => {
+          clearInterval(pingInterval);
+          if (timeoutHandle) {
+            clearTimeout(timeoutHandle);
+          }
+          if (abortSignal) {
+            abortSignal.removeEventListener('abort', abortHandler);
+          }
+          writer.close().catch(() => {
+            // Ignore close errors
+          });
+        };
+
+        const abortHandler = () => {
+          closeStream();
+        };
+
         if (abortSignal) {
-          abortSignal.removeEventListener('abort', abortHandler);
+          abortSignal.addEventListener('abort', abortHandler, { once: true });
         }
-        writer.close().catch(() => {
-          // Ignore close errors
-        });
-      };
 
-      const abortHandler = () => {
-        closeStream();
-      };
+        timeoutHandle = setTimeout(() => {
+          closeStream();
+        }, SSE_CONNECTION_TIMEOUT_MS);
 
-      if (abortSignal) {
-        abortSignal.addEventListener('abort', abortHandler, { once: true });
-      }
+        if (request.method === 'POST') {
+          const bodyText = await request.text();
+          const payload = this.parseMCPRequestBody(bodyText);
+          if (!payload) {
+            await sendError('Invalid MCP request payload');
+          } else {
+            try {
+              const response = await processMCPRequest(payload, {
+                toolRegistry: this.toolRegistry,
+                logger: this.logger,
+              });
 
-      timeoutHandle = setTimeout(() => {
-        closeStream();
-      }, SSE_CONNECTION_TIMEOUT_MS);
-
-      if (request.method === 'POST') {
-        const bodyText = await request.text();
-        const payload = this.parseMCPRequestBody(bodyText);
-        if (!payload) {
-          await sendError('Invalid MCP request payload');
-        } else {
-          try {
-            const response = await processMCPRequest(payload, {
-              toolRegistry: this.toolRegistry,
-              logger: this.logger,
-            });
-
-            await writeEvent(
-              response,
-              'message',
-              payload.id !== undefined && payload.id !== null
-                ? payload.id
-                : undefined
-            );
-          } catch (error) {
-            this.logger.error('Failed to process SSE MCP request', error as Error);
-            await sendError(
-              error instanceof Error ? error.message : 'Internal Server Error'
-            );
+              await writeEvent(
+                response,
+                'message',
+                payload.id !== undefined && payload.id !== null
+                  ? payload.id
+                  : undefined
+              );
+            } catch (error) {
+              this.logger.error('Failed to process SSE MCP request', error as Error);
+              await sendError(
+                error instanceof Error ? error.message : 'Internal Server Error'
+              );
+            }
           }
         }
+      } catch (error) {
+        this.logger.error('SSE handler failed', error as Error);
+        await sendError('Internal Server Error');
       }
+    };
 
-      const headers = {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-        ...this.getCorsHeaders(),
-      };
+    void run();
 
-      return new Response(readable, {
-        status: 200,
-        headers,
-      });
-    } catch (error) {
-      this.logger.error('SSE handler failed', error as Error);
-      await sendError('Internal Server Error');
-      await writer.close();
-      return new Response('Internal Server Error', {
-        status: 500,
-        headers: this.getCorsHeaders(),
-      });
-    }
+    const headers = {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+      ...this.getCorsHeaders(),
+    };
+
+    return new Response(readable, {
+      status: 200,
+      headers,
+    });
   }
 
   private buildLandingPayload(): Record<string, unknown> {
